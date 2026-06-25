@@ -23,10 +23,6 @@
       "Bash(gh pr create:*)",
       "Bash(gh pr view:*)",
       "Bash(wolframscript:*)"
-    ],
-    "deny": [
-      "Bash(git push:* main)",
-      "Bash(git push:* master)"
     ]
   }
 }

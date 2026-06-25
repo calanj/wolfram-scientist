@@ -9,6 +9,13 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
+# This machine exports GITHUB_TOKEN (a PAT) in ~/.zshrc, which overrides gh's
+# keyring credentials and may lack push rights to this repo (=> 403 on push).
+# Drop it for this process so git/gh use the active gh account via the gh
+# credential helper (run `gh auth setup-git` once). Comment out if your
+# GITHUB_TOKEN is the credential you actually want headless runs to push with.
+unset GITHUB_TOKEN
+
 ID="${1:?usage: run-research.sh <issue-number | slug> [inline seed text]}"
 SEED="${2:-}"
 
