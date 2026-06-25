@@ -81,7 +81,14 @@ Engine and switch the workflow to the local stdio server.
 
 ## Status
 
-Scaffold complete; no experiments run yet. First intended seed: a systematic
-elementary cellular-automaton exploration (see the issue template example) —
-maximally on-brand for computational-science exploration and a good test of the
-full loop.
+Harness live; the loop has produced its first finding.
+
+- **[`research/eca-additivity-fractality`](research/eca-additivity-fractality/)** —
+  in the 256 elementary CAs, additivity (GF(2)-linearity) does *not* predict
+  fractal dimension in either direction. The mass-dimension method was validated
+  to ~14 digits (rule 90 = log₂3), and the refutation pass isolated **rule 22**
+  as a genuine outlier: non-additive, not orbit-equivalent to rule 90, yet with
+  exact live-cell count 3ᵏ and dimension log₂3. (merged)
+
+Next seeds: prove rule 22's 3ᵏ count; sweep dimension vs. Wolfram class across
+all 256 rules; rerun under random/periodic initial conditions.
