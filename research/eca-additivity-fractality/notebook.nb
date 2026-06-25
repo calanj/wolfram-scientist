@@ -1,0 +1,211 @@
+(* Content-type: application/vnd.wolfram.mathematica *)
+
+(*** Wolfram Notebook File ***)
+(* http://www.wolfram.com/nb *)
+
+(* CreatedBy='Wolfram 15.0' *)
+
+(*CacheID: 234*)
+(* Internal cache information:
+NotebookFileLineBreakTest
+NotebookFileLineBreakTest
+NotebookDataPosition[       154,          7]
+NotebookDataLength[      9722,        202]
+NotebookOptionsPosition[      8520,        180]
+NotebookOutlinePosition[      8837,        194]
+CellTagsIndexPosition[      8794,        191]
+WindowFrame->Normal*)
+
+(* Beginning of Notebook Content *)
+Notebook[{
+Cell["Elementary CA: additivity vs. fractal dimension", "Title",ExpressionUUID->"d6ab967c-419b-487b-8a61-208c5885a155"],
+
+Cell["Wolfram Scientist \[LongDash] research/eca-additivity-fractality", \
+"Subtitle",ExpressionUUID->"9410a81c-795c-443a-9156-a04da09c662f"],
+
+Cell["Question", "Section",ExpressionUUID->"cf499ba3-aeaf-4d1b-abc0-e72b43e4f94c"],
+
+Cell["\<\
+Which elementary CA rules produce nested (fractal) single-seed patterns, and \
+does additivity (GF(2)-linearity) predict it?\
+\>", "Text",ExpressionUUID->"f06600c2-82a7-4591-931b-b306360b763d"],
+
+Cell["Key result", "Section",ExpressionUUID->"962b2e1d-dbf8-4b5d-b0df-b9deac47b95b"],
+
+Cell["\<\
+The 8 additive rules split across dimensions {0, 1, log2 3, 1.696}. Eight \
+NON-additive rules also reach dim = log2 3; seven collapse onto rule 90 on \
+the single-seed orbit, but rule 22 does not \[LongDash] a genuine outlier \
+(exact mass 3^k, distinct pattern).\
+\>", "Text",ExpressionUUID->"2357e1a1-ae5d-4a65-b893-e20642639851"],
+
+Cell[BoxData[
+ TemplateBox[{
+   TemplateBox[{10}, "Spacer1"], 
+   GraphicsBox[
+    RasterBox[CompressedData["
+1:eJzll9FtxEAIRNfpJC2lhGsgLaTz5PyxUhYlzO1xGBie5awQInO2hUbzfvv8
+uL2NMb7u9/f9Hkf362h+n387n0fzc25B1/r4VXWsf1cd66N5Ld2wW3+9+/XH
+cvbrr2e//t970af//7vp0de6Hfo6/H39QtSf12/++aGe/PP6yT+/7smje8Mz
+v76rR/eGZ36oNf+8XvPP7/kl3/yeX/LN7/kl3/x69pt/bm945p9/dxzzlmmG
+eRv1522XlXh9211ff5jO+vq2s77+uke7dX399V3u1vX1h6mur2+r6+vrfvpq
+v82nr/vpq/02n77up6/223z667nbr6+v75XX3uXR19+t197l0df/u+e7z6Fv
+69fX983X+fX1m19/qCe/vn7y6/vm6/z6vvk6v75vvs6vr9f8+tf6bT79a/02
+n/61fptPfz376cfsXR79uHefQz9SPYN+LPH6sVc0KH9739Gg/O19RoPyt/cZ
+Dcrf3nU0KH9719HIb3F1HQ3K3951NMiPvfvRID/27keD/Ni7Hw3yY+9+NGgv
+vfvRoL307keDvo13Pxr067z70VjzuXU+GunPu35tnY/Gms+z53uENZ9b56Ox
+5vPs+R5hzefZ8z3Cms+z53uENZ9nz/cIq19X83uJ1a+r+b3E6tfV/F5i9etq
+fi+x7m3VvZ9Y97bq3k+s367ytz+x/vraT4/ze/V8j0D5vXq+R6D8Xj3fI1B+
+r57vESi/V8/3CJTfq+d7BMrv1fM9AuX36vkegfycze8lyM/Z/F6C/JzN7yXI
+z9n8XoL2mnXvJ2ivWfd+gr4t87c/QU/H/fQ4/7PDnu8R7PkewZ7vEez5HsGe
+7xHs+R7Bnu8R3fxe0s3vJd38XtLN7yVd937Sde8nnb/9SfTT/wD1bHod
+     "], {{0, 0}, {255, 128}}, {0, 1}], Frame -> Automatic, 
+    FrameLabel -> {None, None}, FrameTicks -> {{None, None}, {None, None}}, 
+    GridLinesStyle -> Directive[
+      GrayLevel[0.5, 0.4]], ImageSize -> 240, 
+    Method -> {
+     "GridLinesInFront" -> True, "DefaultBoundaryStyle" -> Automatic, 
+      "DefaultGraphicsInteraction" -> {
+       "Version" -> 1.2, "TrackMousePosition" -> {True, False}, 
+        "Effects" -> {
+         "Highlight" -> {"ratio" -> 2}, "HighlightPoint" -> {"ratio" -> 2}, 
+          "Droplines" -> {
+           "freeformCursorMode" -> True, 
+            "placement" -> {"x" -> "All", "y" -> "None"}}}}, 
+      "DefaultPlotStyle" -> Automatic}, PlotLabel -> 
+    FormBox["\"Rule 90\"", TraditionalForm]], 
+   GraphicsBox[
+    RasterBox[CompressedData["
+1:eJzlmYtpA0EMRG/TSVpKCWkgLaTzJA45sAX283ms6PdgvSxCjG8PMQz3+v7x
+9v6ybdvnz/raflmj11qz13b6HbyvNXv/m4M19Xx2FyPP2/lp4Hmt2Wfjh5b2
+dbPG1Y0fjqubfVz9ylyMqa/rdzOifuNuRtRvVgfUjT+SX7brh9W+3/gj+WW7
+ftjb95s5uXdu2vSvy7u6d27a9Ju7OnJ3Lfrh3L7/oF+26zdrXP9Bv2zXb/Zx
+/Q/OTZv+9fjdtegX7q5Fv9TdoB/ys5qv0+uLq7w+5Gc1X6fXF/fy+pCf1Xyd
+Xn9d3uXRc3l9yM9qvk6vL57L64OfPttv0+mbdbReXh/89Nl+m07f7Efr5fVh
+rrzmLo3+un23XnOXRh/u1vPuU+iL9fL6zvk6vT6s9vrO+Tq9Puzt9Z3zdXr9
+5Zuv0+s75+v0+nBur//PfptO36xx+v/st+n0zT5OP2ju0uivuLtPoR949yn0
+Q9UT6EP+9l7RUP72XtFQ/vbeo6H87b1HQ/nb+xwN5W/vczSUv73P0VD+9j5H
+Q37sXY+G/Ni7Hg35sXc9GvJj73o0NJfe9WhoLr3r0dC78a5HQ//Oux6Nms+z
+53vC+vNRv1b7o1HzefZ8T6j5XO2PRs3n2fM9oebz7PmeUPN59nxPqPk8e74n
+VL+u5vcW1a+r+b1F9etqfm9R/bqa31vUua069zvq3Fad+x313VV+9yfUf1/7
+6Tm/V8/3BOX36vmeoPxePd8TlN+r53vi6Pf6LnO/Q/m9er4nqn+/V6H8Xj3f
+E9W/36uQn3fze0v17/cq5Ofd/N5S/fu9Cs1117nfqf79XoWervfTc/7vTvd8
+T3TP90T3fE90z/dE93xPdM/3RPd8T0zze8s0v7dM83vLNL+3TJ37nalzvzP5
+3Z+IfvpvX8t3RA==
+     "], {{0, 0}, {255, 128}}, {0, 1}], Frame -> Automatic, 
+    FrameLabel -> {None, None}, FrameTicks -> {{None, None}, {None, None}}, 
+    GridLinesStyle -> Directive[
+      GrayLevel[0.5, 0.4]], ImageSize -> 240, 
+    Method -> {
+     "GridLinesInFront" -> True, "DefaultBoundaryStyle" -> Automatic, 
+      "DefaultGraphicsInteraction" -> {
+       "Version" -> 1.2, "TrackMousePosition" -> {True, False}, 
+        "Effects" -> {
+         "Highlight" -> {"ratio" -> 2}, "HighlightPoint" -> {"ratio" -> 2}, 
+          "Droplines" -> {
+           "freeformCursorMode" -> True, 
+            "placement" -> {"x" -> "All", "y" -> "None"}}}}, 
+      "DefaultPlotStyle" -> Automatic}, PlotLabel -> 
+    FormBox["\"Rule 22\"", TraditionalForm]], 
+   GraphicsBox[
+    RasterBox[CompressedData["
+1:eJzlmQt23CAMRaE7yZa6hGygW+jOm2bO2GEEsoBneIK5HX9AH/DkKC+qPz7/
+/P78FUL4+//4F76J1A95+fj9LxLPzLUf5+dPIZLumWvH8ycQaffMtR/3jxII
+5zVOnp+9XjafVMPP7Lx5+j6SmoiEefo+xHX2PH0fz6o4i0OMJXf7z14v8z9/
+G4aXcxR1Msp/9nr59xXOozQe7T97vcw/OUrj0f6z18v8H4IQ1PFo/9nrZf5S
+D5U6GeU/e73M39Dl0f6z18v8jfFo/9nrZf5CKLMJw24xOh7OL7QyV85rO5qf
+vj+hlaW5Kzuan76/+KqVpbkrO5qfvr+kZtJrrR3NT99foXZK+qnZ0fz0/RVq
+p8WO5qfvT7nW2tH8aDyc/1k1ml5adjQ/fX/nb8ty3Vh2ND99f+e3V4627Gh+
++v6So8eO5kfj4fyGXrbq6ex4OL9RN616Ojsezm98d711NSsezg/a0fxoPJw/
+XH8MMz0e5eev5vLZ9uDGw8+faGfN/9O33o+Oh58/vv7tLO+vbB7iUQ79lDqq
+jVvnR8fDz59UUyjM1/qx4lGsvrrWjxWPEsRVztf6seJRNJ3Vxt7i4edXdFYb
+e4tH0XRWG3uLR9F0Vht7i0ep1V2v8Si1uus1HqVWd73Go9Tqrtd4FCm0csJ7
+PMqrysqR/3gUqbVyzns8itRaOec9HiWtufS6SjxKWnPpdZV4lFLtrRSPUqq9
+leJRDqHt1Vt2PMpRdb16y45HQftrdjwK2l+z41FQvWXHo6B6y45HQeuOHY+C
+rs6OR5H9d+sHTcAm7bV7zlg0H/QdPZqDjey/W+/RHGy0vrt2vjfOC2kNh475
+3jgv9L6XR+O8oPXdtfO9cV6Q/bfVj7faLX82R1VKbdb0udVu+bNB39ej+diE
+5CiNLX80HxtNp2v90XxsNJ2u9UfzsUHf16P52Gg6XeuP5mMjhdrq2Fvt3nlV
+aTnC7d5p7edb7d6RWl2aQ+zeae3nW+3eSWu2pm9vtXuntZ9vtXuntZ9vtXvn
+7n5/NY6qvavfX427+/3VuLvfX427+/3VsPQatXvn7n5/Ne7u91fDaOctM3v7
+MFZHb3msjvWO3vv7e5SrXt6y7YDV11t+q2P19Zbf6lh9veW3OlZfb/mtjqbz
+2ng3NJ3Xxrthva9fvb+30HReG+9Gre7vSq3u70qt7u9Kre7vihT63fp7C9nR
+79bfW6z+/h5Far2c2x3Z1++u9xLZ1++u95LV39+jlGr/ndi9v7fYvb+32L2/
+t9i9v7d4N72XvJveS9617g/YT/8F3w9xqA==
+     "], {{0, 0}, {255, 128}}, {0, 1}], Frame -> Automatic, 
+    FrameLabel -> {None, None}, FrameTicks -> {{None, None}, {None, None}}, 
+    GridLinesStyle -> Directive[
+      GrayLevel[0.5, 0.4]], ImageSize -> 240, 
+    Method -> {
+     "GridLinesInFront" -> True, "DefaultBoundaryStyle" -> Automatic, 
+      "DefaultGraphicsInteraction" -> {
+       "Version" -> 1.2, "TrackMousePosition" -> {True, False}, 
+        "Effects" -> {
+         "Highlight" -> {"ratio" -> 2}, "HighlightPoint" -> {"ratio" -> 2}, 
+          "Droplines" -> {
+           "freeformCursorMode" -> True, 
+            "placement" -> {"x" -> "All", "y" -> "None"}}}}, 
+      "DefaultPlotStyle" -> Automatic}, PlotLabel -> 
+    FormBox["\"Rule 150\"", TraditionalForm]]},
+  "RowWithSeparator"]], "Output",ExpressionUUID->"7f6771e9-1a77-4254-a83a-\
+6218acc5734c"],
+
+Cell["Dimensions (sample)", "Section",ExpressionUUID->"6576bceb-9c96-4e91-acbf-f7774276414e"],
+
+Cell[BoxData[
+ TagBox[GridBox[{
+    {"\<\"rule\"\>", "\<\"mass dim\"\>", "\<\"type\"\>"},
+    {"0", "0.`", "\<\"additive\"\>"},
+    {"90", "1.5849625007211554`", "\<\"additive\"\>"},
+    {"60", "1.5849625007211554`", "\<\"additive\"\>"},
+    {"102", "1.5849625007211554`", "\<\"additive\"\>"},
+    {"150", "1.6962716765868064`", "\<\"additive\"\>"},
+    {"170", "1.`", "\<\"additive\"\>"},
+    {"204", "1.`", "\<\"additive\"\>"},
+    {"18", "1.5849625007211554`", "\<\"non-additive\"\>"},
+    {"22", "1.5849625007211554`", "\<\"non-additive\"\>"},
+    {"26", "1.5849625007211554`", "\<\"non-additive\"\>"}
+   },
+   AutoDelete->False,
+   GridBoxFrame->{"Columns" -> {{True}}, "Rows" -> {{True}}},
+   GridBoxItemSize->{"Columns" -> {{Automatic}}, "Rows" -> {{Automatic}}}],
+  "Grid"]], "Output",ExpressionUUID->"7e9240c3-3f37-430f-b44d-4d3cc73594aa"],
+
+Cell["Epistemic status", "Section",ExpressionUUID->"289c46ce-d847-444a-951c-2c856442bbe7"],
+
+Cell["\<\
+Verified: dimensions exact to ~14 digits (mass = 3^k). Conjecture (tested to \
+2^10 rows): rule 22 has dimension exactly log2 3 despite not reducing to rule \
+90.\
+\>", "Text",ExpressionUUID->"5006741f-17f1-41c6-b6b8-a238fb1f9a7c"]
+},
+FrontEndVersion->"15.0 for Mac OS X x86 (64-bit) (May 19, 2026)",
+StyleDefinitions->"Default.nb",
+ExpressionUUID->"f57316a7-b0a6-4bb4-b038-daedecad3f13"
+]
+(* End of Notebook Content *)
+
+(* Internal cache information *)
+(*CellTagsOutline
+CellTagsIndex->{}
+*)
+(*CellTagsIndex
+CellTagsIndex->{}
+*)
+(*NotebookFileOutline
+Notebook[{
+Cell[554, 20, 119, 0, 70, "Title",ExpressionUUID->"d6ab967c-419b-487b-8a61-208c5885a155"],
+Cell[676, 22, 141, 1, 70, "Subtitle",ExpressionUUID->"9410a81c-795c-443a-9156-a04da09c662f"],
+Cell[820, 25, 82, 0, 70, "Section",ExpressionUUID->"cf499ba3-aeaf-4d1b-abc0-e72b43e4f94c"],
+Cell[905, 27, 203, 3, 70, "Text",ExpressionUUID->"f06600c2-82a7-4591-931b-b306360b763d"],
+Cell[1111, 32, 84, 0, 70, "Section",ExpressionUUID->"962b2e1d-dbf8-4b5d-b0df-b9deac47b95b"],
+Cell[1198, 34, 343, 5, 70, "Text",ExpressionUUID->"2357e1a1-ae5d-4a65-b893-e20642639851"],
+Cell[1544, 41, 5688, 108, 70, "Output",ExpressionUUID->"7f6771e9-1a77-4254-a83a-6218acc5734c"],
+Cell[7235, 151, 93, 0, 70, "Section",ExpressionUUID->"6576bceb-9c96-4e91-acbf-f7774276414e"],
+Cell[7331, 153, 848, 17, 70, "Output",ExpressionUUID->"7e9240c3-3f37-430f-b44d-4d3cc73594aa"],
+Cell[8182, 172, 90, 0, 70, "Section",ExpressionUUID->"289c46ce-d847-444a-951c-2c856442bbe7"],
+Cell[8275, 174, 241, 4, 70, "Text",ExpressionUUID->"5006741f-17f1-41c6-b6b8-a238fb1f9a7c"]
+}
+]
+*)
+
+(* End of internal cache information *)
