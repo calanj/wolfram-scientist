@@ -79,16 +79,13 @@ Engine and switch the workflow to the local stdio server.
 | `JOURNAL.md` | Methods log (self-improvement) |
 | `research/<id>/` | Per-request outputs: `plan.md`, `experiment.wl`, `findings.md`, `notebook.nb` |
 
-## Status
+## Findings
 
-Harness live; the loop has produced its first finding.
+The harness is live and the loop runs end-to-end (autonomous experiment →
+self-critique → PR). Rather than enumerate results here (where they go stale),
+see the source of truth:
 
-- **[`research/eca-additivity-fractality`](research/eca-additivity-fractality/)** —
-  in the 256 elementary CAs, additivity (GF(2)-linearity) does *not* predict
-  fractal dimension in either direction. The mass-dimension method was validated
-  to ~14 digits (rule 90 = log₂3), and the refutation pass isolated **rule 22**
-  as a genuine outlier: non-additive, not orbit-equivalent to rule 90, yet with
-  exact live-cell count 3ᵏ and dimension log₂3. (merged)
-
-Next seeds: prove rule 22's 3ᵏ count; sweep dimension vs. Wolfram class across
-all 256 rules; rerun under random/periodic initial conditions.
+- **[`research/`](research/)** — each completed study (`plan.md`,
+  `experiment.wl`, `findings.md`, `notebook.nb`).
+- **[`JOURNAL.md`](JOURNAL.md)** — the running methods log: what worked, dead
+  ends, new `lib/` assets, and the next seeds to try.
