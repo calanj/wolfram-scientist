@@ -3,3 +3,5 @@
 .DS_Store
 # Claude Code local overrides
 .claude/settings.local.json
+# session handoff log — local only, not shared
+HANDOFF.md
