@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__Wolfram__WolframLanguageEvaluator",
+      "mcp__Wolfram__WolframLanguageContext",
+      "mcp__Wolfram__SymbolDefinition",
+      "mcp__Wolfram__CodeInspector",
+      "Read",
+      "Write",
+      "Edit",
+      "Glob",
+      "Grep",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(gh issue view:*)",
+      "Bash(gh issue comment:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr view:*)",
+      "Bash(wolframscript:*)"
+    ],
+    "deny": [
+      "Bash(git push:* main)",
+      "Bash(git push:* master)"
+    ]
+  }
+}

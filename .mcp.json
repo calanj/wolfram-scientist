@@ -1,0 +1,20 @@
+{
+  "mcpServers": {
+    "Wolfram": {
+      "type": "stdio",
+      "command": "/Applications/Wolfram 15.0/Wolfram.app/Contents/MacOS/wolfram",
+      "args": [
+        "-run",
+        "PacletSymbol[\"Wolfram/AgentTools\",\"Wolfram`AgentTools`StartMCPServer\"][]",
+        "-noinit",
+        "-noprompt"
+      ],
+      "env": {
+        "MCP_SERVER_NAME": "WolframLanguage",
+        "WOLFRAM_BASE": "/Library/Wolfram",
+        "WOLFRAM_USERBASE": "/Users/alanj/Library/Wolfram",
+        "WOLFRAM_LOCALBASE": "/Users/alanj/Library/Wolfram/Objects"
+      }
+    }
+  }
+}

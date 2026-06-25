@@ -1,0 +1,36 @@
+name: "🔬 Research request"
+description: "Ask the Wolfram Scientist to explore a computational/scientific question."
+title: "[research] "
+labels: ["research-request"]
+body:
+  - type: input
+    id: domain
+    attributes:
+      label: Domain
+      description: e.g. cellular automata, number theory, dynamical systems, graphs
+      placeholder: cellular automata
+    validations:
+      required: true
+  - type: textarea
+    id: question
+    attributes:
+      label: Question / seed
+      description: The idea to explore. A good seed is specific enough to be testable but open enough to surprise.
+      placeholder: "Among the 256 elementary CA rules, which produce nested (fractal) patterns from a single black cell, and is there a simple predictor of class-4 behavior?"
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: What would make this interesting?
+      description: Optional. What kind of result would you find worth reporting?
+      placeholder: "A non-obvious classifier, an unexpected outlier, or a clean negative result."
+  - type: input
+    id: budget
+    attributes:
+      label: Compute budget
+      description: Optional. Rough bound so the agent doesn't run away.
+      placeholder: "a few minutes of kernel time; search bound <= 10^6"
+  - type: markdown
+    attributes:
+      value: "After filing, comment `@claude` to dispatch the Scientist (if the GitHub Action is enabled), or run `bin/run-research.sh <issue-number>` locally."
