@@ -53,9 +53,49 @@ bin/run-research.sh 12                          # research issue #12
 bin/run-research.sh ca-elementary "Among ..."   # ad-hoc seed, no issue needed
 ```
 
-The local kernel is configured in `.mcp.json`. Paths there are machine-specific
-(currently Wolfram 15.0 on this Mac) — edit for your install. Output lands on a
-`research/<id>` branch as a PR.
+**First-time setup of the local kernel.** `.mcp.json` is git-ignored because it
+holds absolute, machine-specific paths. Create your own from the template:
+
+```bash
+cp .mcp.json.example .mcp.json
+```
+
+Then edit `.mcp.json` for your install:
+- `command` — the path to your `wolfram` executable (e.g.
+  `/Applications/Wolfram.app/Contents/MacOS/wolfram`, or a versioned
+  `Wolfram 15.0` app).
+- the `WOLFRAM_USERBASE` / `WOLFRAM_LOCALBASE` env paths — point at your own home dir.
+
+It uses the `Wolfram/AgentTools` paclet's stdio MCP server. If you don't yet have
+Wolfram Engine + that paclet wired up, the **`wolfram-setup` skill** walks through
+installing/activating the engine and configuring the MCP server. Output lands on
+a `research/<id>` branch as a PR.
+
+**Optional — run on a specific model via the Wolfram LiteLLM router:**
+
+```bash
+bin/run-research.sh --list-models               # list callable model ids
+bin/run-research.sh --model claude-opus-4-7 12   # research issue #12 on that model
+```
+
+Requires `WOLFRAM_LLM_API_KEY` in the environment. Without `--model`/`WS_MODEL`
+the runner uses your normal Claude auth. (Verified working: the Claude 4.x,
+Kimi-K2.x, and GLM-5 families. The GPT-5.x family currently fails through this
+path — see the note in `bin/run-research.sh`.)
+
+**Via the control panel (a local web UI for the knobs):**
+
+```bash
+/usr/bin/python3 bin/control-panel.py        # then open http://127.0.0.1:8765
+```
+
+A dependency-free, localhost-only page to pick the mode (1P / router),
+orchestrator and experimenter models (router lists are fetched live; the
+experimenter dropdown mirrors the Sonnet cap), set the issue/slug and seed, and
+kick off a run with the log streaming back. It just shells out to
+`bin/run-research.sh`, so every guarantee lives there. Launch it from a shell
+that has your run env (`WOLFRAM_LLM_API_KEY` + your Claude auth) — the run
+inherits the server's environment.
 
 **Via GitHub (issue-driven):** enable `.github/workflows/scientist.yml`, add an
 `ANTHROPIC_API_KEY` repo secret, file a Research Request issue, and comment
@@ -69,9 +109,11 @@ Engine and switch the workflow to the local stdio server.
 | Path | Purpose |
 |---|---|
 | `CLAUDE.md` | The Scientist's identity + non-negotiable rigor rules (always loaded) |
-| `prompts/research-loop.md` | The step-by-step procedure for one request |
-| `bin/run-research.sh` | Local headless runner |
-| `.mcp.json` | Local Wolfram kernel (MCP, stdio) |
+| `prompts/research-loop.md` | The orchestrator's procedure for one request |
+| `.claude/agents/` | Subagents: `experimenter`, `refuter`, `writer` (own tools + model) |
+| `bin/run-research.sh` | Local headless runner (`--router` / `--model` / `--experimenter-model`) |
+| `bin/control-panel.py` | Local web UI (stdlib only) to set the knobs and stream runs |
+| `.mcp.json.example` | Template for the local Wolfram kernel (MCP, stdio); copy to `.mcp.json` and edit paths |
 | `.claude/settings.json` | Tool allowlist for unattended runs |
 | `.github/ISSUE_TEMPLATE/` | Research Request form |
 | `.github/workflows/scientist.yml` | `@claude` issue trigger (remote MCP) |

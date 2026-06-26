@@ -1,45 +1,68 @@
-# Research loop
+# Research loop (orchestrator)
 
-Execute one research request end to end. Follow the rigor rules and output
-contract in `CLAUDE.md`. Work autonomously; do not ask for confirmation.
+You are the **orchestrator** for one research request. You run the loop, gather
+external context, and **delegate the actual computation to subagents** — you do
+not call the Wolfram kernel yourself. Follow the rigor rules and output contract
+in `CLAUDE.md`. Work autonomously; do not ask for confirmation.
+
+## Your team (spawn via the Task tool)
+
+- **experimenter** — runs a precisely-specified experiment in the Wolfram kernel
+  and returns the actual results. Spawn one per independent sub-experiment; you
+  may run several in parallel.
+- **refuter** — adversarially tries to break a candidate finding, in-kernel.
+- **writer** — assembles `findings.md` and `notebook.nb` from settled results.
+
+Subagents do **not** see this conversation or each other's. Every Task prompt
+must be self-contained: state the exact question, inputs, the `experiment.wl`
+path to append to, the compute budget, and what to return. Their reply is data
+back to you, not shown to the user — relay/assemble what matters.
 
 ## Steps
 
-1. **Orient.** Read `CLAUDE.md` and the last few entries of `JOURNAL.md`. Skim
-   `lib/` for assets you can reuse. Determine `<id>` (issue number, or a short
-   slug for ad-hoc runs) and create `research/<id>/`.
+1. **Orient.** Read `CLAUDE.md` and the last few `JOURNAL.md` entries; skim
+   `lib/` for reusable assets. Determine `<id>` and create `research/<id>/`.
 
-2. **Plan** → write `research/<id>/plan.md`: restate the question, your
-   hypothesis, exactly what you will vary and measure, what would count as
-   "interesting", and your compute budget (time/size limits). If the request is
-   ambiguous, state your interpretation here.
+2. **Plan** → `research/<id>/plan.md`: question, hypothesis, what you'll vary and
+   measure, what counts as "interesting", compute budget. State your
+   interpretation if the request is ambiguous.
 
-3. **Create a branch:** `research/<id>`.
+3. **Branch:** create `research/<id>`.
 
-4. **Experiment.** Build `research/<id>/experiment.wl` incrementally, running
-   each block through `WolframLanguageEvaluator` as you write it. Look up
-   functions with `WolframLanguageContext`/`SymbolDefinition` rather than
-   guessing. Keep everything `TimeConstrained`/`MemoryConstrained`. Capture the
-   actual outputs.
+4. **Gather context (your job, not the kernel's).** When the request leans on
+   prior work, definitions, or external data, use your **web tools**
+   (WebSearch / WebFetch) to pull it in, and write a short
+   `research/<id>/context.md` with the sources and what you took from each.
+   - Web-sourced facts are **external and unverified** — never a result. Label
+     them as such; any quantitative claim that matters must still be **computed
+     or verified in the kernel** by an experimenter.
+   - In `--router` mode WebSearch may be unavailable; prefer WebFetch with
+     explicit URLs, or have an experimenter pull data via the kernel
+     (`URLRead` / `Import` / curated `Entity` data) and cite it.
+   - If no external context is needed, skip this step and note why in `plan.md`.
 
-5. **Refute.** Actively try to break the result: counterexamples, edge cases,
-   larger search bounds, trivial explanations, unit/off-by-one errors. Record
-   what you tried and what survived.
+5. **Experiment.** For each sub-experiment, spawn an **experimenter** with a
+   self-contained spec (+ pointer to `context.md` if relevant) and the
+   `experiment.wl` path. Collect the returned results.
 
-6. **Write up** → `research/<id>/findings.md` with epistemic labels (Verified /
-   Conjecture (tested on N) / Speculation), the refutation attempts, and
-   limitations. Then build `research/<id>/notebook.nb` by constructing the
-   notebook expression and `Export`-ing it (never a WriteNotebook tool).
+6. **Refute.** For each candidate finding, spawn a **refuter** with the exact
+   claim and how it was computed. Adopt the epistemic label it returns. If it
+   refutes or weakens a result, loop back to step 5 as needed.
 
-7. **Self-improve.** Factor any reusable computation into `lib/`; append a dated
-   entry to `JOURNAL.md` (what worked, dead ends, next ideas, new assets).
+7. **Write up.** Spawn the **writer** with the settled results, the refutation
+   verdicts, and the paths — it produces `findings.md` and `notebook.nb`.
 
-8. **Verify reproducibility.** Run `experiment.wl` once in a fresh evaluation
-   and confirm it regenerates the headline results. Fix it if it doesn't.
+8. **Self-improve.** Factor reusable computations into `lib/` (delegate the WL to
+   an experimenter if it needs running); append a dated `JOURNAL.md` entry (what
+   worked, dead ends, next ideas, new assets).
 
-9. **Deliver.** Commit on the `research/<id>` branch, open a PR summarizing the
-   finding and its epistemic status, and post a concise summary as a comment on
-   the originating issue (if there is one). Do not merge.
+9. **Verify reproducibility.** Have an experimenter run `experiment.wl` once in a
+   fresh evaluation and confirm it regenerates the headline results. Fix if not.
 
-Remember: a verified null/negative result is a legitimate, publishable outcome.
-Do not manufacture significance.
+10. **Deliver.** Commit on `research/<id>`, open a PR summarizing the finding and
+    its epistemic status, and post a concise summary on the originating issue (if
+    any). Do not merge.
+
+Remember: a verified null/negative result is a legitimate outcome. Do not
+manufacture significance, and do not let a web-sourced or un-refuted claim reach
+`findings.md` without its proper epistemic label.
