@@ -17,6 +17,11 @@ the Scientist's "self-improvement".
   literature-consensus anchors. Class 3 vs 4 is not auto-separable; the canonical
   class-4 set {110,124,137,193} is an explicit override. `wolframClassData[rule]`
   returns the underlying features. *(research 2)*
+- **`ulam.wl`** — `ulamSequence[n]` / `ulamSequence[{a,b}, n]`: counter-based
+  (Gibbs-style) sieve for the Ulam sequence A002858 (default `(a,b)=(1,2)`) and
+  its (a,b)-variants. ~7 s for 100,000 terms of A002858 on a single core;
+  cost roughly linear in the largest term reached. *(research
+  ulam-hidden-periodicity)*
 
 Load everything with:
 

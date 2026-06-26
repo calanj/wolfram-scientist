@@ -6,6 +6,59 @@ starting a new run so you don't repeat dead ends. Newest first.
 
 ---
 
+## 2026-06-25 — ulam-hidden-periodicity: Steinerberger's α replicates cleanly
+
+**Result:** clean **positive replication** of Steinerberger 2015 within N=10^5.
+α̂(10^5) = **2.571447610061** (two independent refinements agree to 2×10^-11);
+depth f(α̂)/N = **−0.79751**, already ≈99.7% of the paper's asymptotic −0.8 at
+N=10^7. Exceptional set {a_n : cos(α̂·a_n) ≥ 0} = **{2, 3, 47, 69}** exactly,
+stable at every prefix from N=10^3 to N=10^5 (high-precision modular check at
+WP 30; no borderline near-zeros).
+
+**Specificity is the sharpest finding.** Over 100 random density-matched
+strictly-increasing integer sequences (N=30,000, support {1..a_30000}),
+f(α_Ulam)/N has mean −7×10^-5, std 0.0041 — Ulam's −0.795 is a **Z ≈ −194**
+outlier (refuter reproduced Z = −194.0 with a fresh RNG). No random sample
+came within a factor of 70. Rational frequencies 2π·p/q for q ≤ 20 also fail
+to produce comparable dips (best −0.005). The phenomenon recurs across the
+erratic Ulam-type starts (1,3), (1,4), (2,3) at their reported paper-α to
+~10^-7, with depths −0.80, −0.86, −0.83 respectively.
+
+**What worked:** the Gibbs counter-based sieve (compiled, C target) — 7 s for
+N=10^5, costs roughly linear in max element. Seeding `FindMinimum` at the
+paper's α was essential: a 4000-point uniform grid over [0.05, π] *misses* the
+dip entirely (it lands on a shallow −0.013 local minimum at x≈2.01). The dip's
+0.1-rise half-width is ≈6.5×10^-7 — genuinely sub-grid at typical
+exploratory resolutions. Same hidden-at-grid character for Ulam(1,3) and
+(2,3) (paper α is correct but invisible to the coarse scan); (1,4) is wide
+enough that the coarse minimum happens to land on it. This made the "hidden"
+in the paper title operational rather than rhetorical.
+
+**Dead ends / gotchas:** initial writer agent silently failed to save
+`findings.md` to disk (printed it in chat instead), AND swapped the
+"coarse-grid minimum" and "refined-at-paper-α" columns for (1,4)/(2,3),
+which would have flipped the conclusion from "replicates" to "refutes" for
+two of three (a,b) variants. **Always verify the writer's table cells
+against the experimenter's raw numbers — don't ship the writer output blind.**
+Sidon-set control (a stronger "hand-tuned sparse sequence" check) timed out
+in budget — left as a documented gap.
+
+**New asset:** `lib/ulam.wl` — `ulamSequence[n]` and `ulamSequence[{a,b}, n]`,
+counter-based sieve, ~7 s for 100k terms of A002858; cross-validated against
+OEIS b-file (a_10000 = 132788) and a naive O(n²) reference.
+
+**Next:**
+- close the Sidon-set gap (an engineered sparse non-Ulam control that *could*
+  exhibit a similar dip would qualitatively change the conclusion);
+- push to N ≈ 10^6 or 10^7 to verify whether the exceptional set ever grows
+  beyond {2,3,47,69} and to land α inside McCranie's interval;
+- a cheap small-scale sweep over more erratic (a,b) pairs to widen the
+  "every erratic Ulam-type has a deep α" conjecture (currently tested on 4
+  cases);
+- the dip's f''/N ≈ 5×10^11 and width ~7×10^-7 suggest an internal length
+  scale that begs for an analytic explanation; worth examining whether α has
+  a closed form via continued-fraction probes or LLL.
+
 ## 2026-06-24 — research 2: mass dimension vs Wolfram class (all 256 ECAs)
 
 **Result:** clean **negative**. Single-seed mass dimension `D` does **not** proxy
