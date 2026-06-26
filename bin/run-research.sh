@@ -15,11 +15,12 @@
 #     against api.anthropic.com. Open-ended WebSearch works. Models are Claude
 #     tiers (opus/sonnet/haiku). --model / --experimenter-model take 1P names.
 #
-#   --router : route ALL agents through the Wolfram LiteLLM router
-#     (https://llmapi.wolfram.com, which speaks the Anthropic Messages API at
-#     /v1/messages). Pick ANY model per role — good for benchmarking non-Claude
-#     experimenters. WebSearch is unavailable (router Claude is Bedrock-backed);
-#     the orchestrator gathers web data via WebFetch / kernel URLRead instead.
+#   --router : route ALL agents through a LiteLLM-style gateway that speaks the
+#     Anthropic Messages API at /v1/messages. Set its base URL via $LITELLM_BASE
+#     and its key via $LITELLM_KEY (neither is baked into the repo). Pick ANY
+#     model per role — good for benchmarking non-Claude experimenters. WebSearch
+#     may be unavailable on such a gateway; the orchestrator then gathers web
+#     data via WebFetch / kernel URLRead instead.
 #
 #   bin/run-research.sh --model opus 12                       # 1P, orchestrator on Opus
 #   bin/run-research.sh --router 12                           # router, Claude defaults
@@ -46,7 +47,10 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-LITELLM_BASE="https://llmapi.wolfram.com"
+# Base URL of the Anthropic-API-compatible gateway used by --router / --list-models.
+# Set this in your environment (e.g. ~/.bash_profile); no default, so no internal
+# endpoint is baked into the repo.
+LITELLM_BASE="${LITELLM_BASE:-}"
 
 # --- arg parsing -------------------------------------------------------------
 ROUTER="${WS_ROUTER:-0}"
@@ -80,10 +84,11 @@ fi
 
 # --- LiteLLM helpers ---------------------------------------------------------
 if [[ "$LIST_MODELS" == 1 ]]; then
-  : "${WOLFRAM_LLM_API_KEY:?WOLFRAM_LLM_API_KEY not set (it lives in ~/.bash_profile)}"
+  : "${LITELLM_BASE:?LITELLM_BASE not set — point it at your Anthropic-API-compatible gateway}"
+  : "${LITELLM_KEY:?LITELLM_KEY not set (set it in your shell rc, e.g. ~/.zshrc)}"
   echo "Models callable via $LITELLM_BASE :"
   curl -s "$LITELLM_BASE/v1/models" \
-    -H "Authorization: Bearer $WOLFRAM_LLM_API_KEY" \
+    -H "Authorization: Bearer $LITELLM_KEY" \
     | python3 -c "import sys,json; print('\n'.join('  '+m['id'] for m in json.load(sys.stdin)['data']))"
   exit 0
 fi
@@ -117,13 +122,14 @@ $SEED
 # frontmatter; we remap those aliases per mode with ANTHROPIC_DEFAULT_*_MODEL.
 MODEL_FLAG=()
 if [[ "$ROUTER" == 1 ]]; then
-  : "${WOLFRAM_LLM_API_KEY:?WOLFRAM_LLM_API_KEY not set (it lives in ~/.bash_profile)}"
+  : "${LITELLM_BASE:?LITELLM_BASE not set — point it at your Anthropic-API-compatible gateway}"
+  : "${LITELLM_KEY:?LITELLM_KEY not set (set it in your shell rc, e.g. ~/.zshrc)}"
   : "${MODEL:=claude-opus-4-7}"
   : "${EXP_MODEL:=claude-sonnet-4-6}"
   echo "Routing ALL agents through $LITELLM_BASE"
   echo "  orchestrator: $MODEL    experimenter/refuter: $EXP_MODEL    writer/fast: claude-haiku-4-5"
   export ANTHROPIC_BASE_URL="$LITELLM_BASE"
-  export ANTHROPIC_AUTH_TOKEN="$WOLFRAM_LLM_API_KEY"
+  export ANTHROPIC_AUTH_TOKEN="$LITELLM_KEY"
   # The bearer token is the credential; a lingering ANTHROPIC_API_KEY would conflict.
   unset ANTHROPIC_API_KEY
   export ANTHROPIC_DEFAULT_SONNET_MODEL="$EXP_MODEL"

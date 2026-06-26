@@ -9,7 +9,7 @@ there, not here.
     /usr/bin/python3 bin/control-panel.py          # then open http://127.0.0.1:8765
     /usr/bin/python3 bin/control-panel.py --port 9000
 
-Launch it from a shell that has your run env (e.g. WOLFRAM_LLM_API_KEY for
+Launch it from a shell that has your run env (e.g. LITELLM_KEY for
 router mode and your Claude auth) — the subprocess inherits this server's
 environment. Binds to 127.0.0.1 only.
 """
@@ -94,8 +94,8 @@ def _fmt_event(line):
 
 
 def _corporate_ca():
-    """Locate a CA bundle for the corporate TLS-intercepting proxy, so curl can
-    verify https://llmapi.wolfram.com (claude/Node use NODE_EXTRA_CA_CERTS for
+    """Locate a CA bundle for a corporate TLS-intercepting proxy, so curl can
+    verify the LLM gateway over HTTPS (claude/Node use NODE_EXTRA_CA_CERTS for
     the same reason). Returns a path or None."""
     candidates = [
         os.environ.get("CURL_CA_BUNDLE"),
@@ -327,13 +327,14 @@ class Handler(BaseHTTPRequestHandler):
         """Fetch the router model list directly (curl does the HTTPS; we parse
         the JSON here). Avoids the runner's pyenv `curl | python3 -c` pipeline
         and surfaces a real error rather than a traceback."""
-        key = os.environ.get("WOLFRAM_LLM_API_KEY")
-        if not key:
-            return {"error": "WOLFRAM_LLM_API_KEY is not set in this server's "
-                    "environment. Relaunch the panel from a shell that has it "
-                    "(it lives in ~/.bash_profile)."}
+        key = os.environ.get("LITELLM_KEY")
+        base = os.environ.get("LITELLM_BASE")
+        if not key or not base:
+            return {"error": "LITELLM_KEY and LITELLM_BASE must be set in this "
+                    "server's environment. Relaunch the panel from a shell that "
+                    "has them (set them in your shell rc, e.g. ~/.zshrc)."}
         cmd = ["curl", "-sS", "-w", "\n%{http_code}",
-               "https://llmapi.wolfram.com/v1/models",
+               f"{base}/v1/models",
                "-H", f"Authorization: Bearer {key}"]
         ca = _corporate_ca()  # behind a TLS-intercepting proxy, curl needs the CA
         if ca:
@@ -408,7 +409,7 @@ def main():
     args = ap.parse_args()
     srv = ThreadingHTTPServer((args.host, args.port), Handler)
     print(f"Wolfram Scientist control panel → http://{args.host}:{args.port}")
-    print("(launch from a shell that has WOLFRAM_LLM_API_KEY + your Claude auth)")
+    print("(launch from a shell that has LITELLM_KEY + your Claude auth)")
     try:
         srv.serve_forever()
     except KeyboardInterrupt:

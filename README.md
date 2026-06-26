@@ -71,14 +71,15 @@ Wolfram Engine + that paclet wired up, the **`wolfram-setup` skill** walks throu
 installing/activating the engine and configuring the MCP server. Output lands on
 a `research/<id>` branch as a PR.
 
-**Optional — run on a specific model via the Wolfram LiteLLM router:**
+**Optional — run on a specific model via a LiteLLM-style gateway:**
 
 ```bash
 bin/run-research.sh --list-models               # list callable model ids
 bin/run-research.sh --model claude-opus-4-7 12   # research issue #12 on that model
 ```
 
-Requires `WOLFRAM_LLM_API_KEY` in the environment. Without `--model`/`WS_MODEL`
+Requires `LITELLM_BASE` (the gateway URL) and `LITELLM_KEY` in the environment.
+Without `--model`/`WS_MODEL`
 the runner uses your normal Claude auth. (Verified working: the Claude 4.x,
 Kimi-K2.x, and GLM-5 families. The GPT-5.x family currently fails through this
 path — see the note in `bin/run-research.sh`.)
@@ -94,7 +95,7 @@ orchestrator and experimenter models (router lists are fetched live; the
 experimenter dropdown mirrors the Sonnet cap), set the issue/slug and seed, and
 kick off a run with the log streaming back. It just shells out to
 `bin/run-research.sh`, so every guarantee lives there. Launch it from a shell
-that has your run env (`WOLFRAM_LLM_API_KEY` + your Claude auth) — the run
+that has your run env (`LITELLM_BASE` + `LITELLM_KEY` + your Claude auth) — the run
 inherits the server's environment.
 
 **Via GitHub (issue-driven):** enable `.github/workflows/scientist.yml`, add an
