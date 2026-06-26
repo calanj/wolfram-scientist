@@ -3,5 +3,7 @@
 .DS_Store
 # Claude Code local overrides
 .claude/settings.local.json
+# Local Wolfram MCP config — machine-specific paths; copy .mcp.json.example
+.mcp.json
 # session handoff log — local only, not shared
 HANDOFF.md

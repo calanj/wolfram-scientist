@@ -2,12 +2,91 @@
 # Run one research request locally, using the local Wolfram kernel (via .mcp.json)
 # and Claude Code in headless mode.
 #
+# Claude Code runs as an ORCHESTRATOR: it gathers context (web tools), plans, and
+# delegates computation to subagents defined in .claude/agents/ (experimenter,
+# refuter, writer). See prompts/research-loop.md.
+#
 #   bin/run-research.sh 12                       # research GitHub issue #12
 #   bin/run-research.sh ca-rule90 "Explore ..."  # ad-hoc run with an inline seed
+#
+# Model selection — two modes:
+#
+#   (default) 1P Claude: orchestrator + subagents on your subscription/API Claude
+#     against api.anthropic.com. Open-ended WebSearch works. Models are Claude
+#     tiers (opus/sonnet/haiku). --model / --experimenter-model take 1P names.
+#
+#   --router : route ALL agents through the Wolfram LiteLLM router
+#     (https://llmapi.wolfram.com, which speaks the Anthropic Messages API at
+#     /v1/messages). Pick ANY model per role — good for benchmarking non-Claude
+#     experimenters. WebSearch is unavailable (router Claude is Bedrock-backed);
+#     the orchestrator gathers web data via WebFetch / kernel URLRead instead.
+#
+#   bin/run-research.sh --model opus 12                       # 1P, orchestrator on Opus
+#   bin/run-research.sh --router 12                           # router, Claude defaults
+#   bin/run-research.sh --router --experimenter-model Kimi-K2.6 12   # bench Kimi as experimenter
+#   bin/run-research.sh --list-models                         # list router model ids
+#
+# Roles map to model ALIASES so the .claude/agents/ files work in both modes:
+#   orchestrator = the main --model     (default: opus / router: claude-opus-4-7)
+#   experimenter + refuter = `sonnet`   (default: 1P sonnet / router: claude-sonnet-4-6)
+#   writer + small-fast = `haiku`       (default: 1P haiku / router: claude-haiku-4-5)
+# --experimenter-model overrides the `sonnet` alias (this is the benchmarking knob).
+#
+# CAP: Claude subagents never run above Sonnet-level — the orchestrator may be
+# Opus, but subagents only ever resolve to Sonnet/Haiku. The runner rejects a
+# Claude-Opus --experimenter-model. (Non-Claude models are allowed there.)
+#
+# NOTE (router): subagents lean heavily on MCP tool calls — use a strong
+# tool-caller. Verified working (2026-06-25): claude-sonnet-4-6, claude-opus-4-7,
+# Kimi-K2.6, zai-glm-5. The GPT-5.x family currently FAILS (Azure rejects an
+# `output_config` param Claude Code sends — a LiteLLM translation gap). Non-tool
+# models (Llama, Gemma, Qwen-local, embeddings) stall on the first tool step.
 #
 # Findings land on a `research/<id>` branch as a PR; nothing is merged.
 set -euo pipefail
 cd "$(dirname "$0")/.."
+
+LITELLM_BASE="https://llmapi.wolfram.com"
+
+# --- arg parsing -------------------------------------------------------------
+ROUTER="${WS_ROUTER:-0}"
+MODEL="${WS_MODEL:-}"                       # orchestrator model
+EXP_MODEL="${WS_EXPERIMENTER_MODEL:-}"      # experimenter/refuter model (sonnet alias)
+LIST_MODELS=0
+POSITIONAL=()
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --router)                  ROUTER=1; shift ;;
+    --model)                   MODEL="${2:?--model needs a model id}"; shift 2 ;;
+    --model=*)                 MODEL="${1#*=}"; shift ;;
+    --experimenter-model)      EXP_MODEL="${2:?--experimenter-model needs a model id}"; shift 2 ;;
+    --experimenter-model=*)    EXP_MODEL="${1#*=}"; shift ;;
+    --list-models)             LIST_MODELS=1; shift ;;
+    *)                         POSITIONAL+=("$1"); shift ;;
+  esac
+done
+set -- "${POSITIONAL[@]:-}"
+
+# --- subagent model cap ------------------------------------------------------
+# Hard rule: Claude subagents never run above Sonnet-level, even if the
+# orchestrator is Opus. The agent frontmatter only ever uses the sonnet/haiku
+# aliases, so the lone way to breach this is --experimenter-model. Reject a
+# Claude Opus (or higher) id there. Non-Claude models are allowed (benchmarking).
+if [[ "$EXP_MODEL" =~ [Oo]pus ]]; then
+  echo "Refusing --experimenter-model '$EXP_MODEL': subagents are capped at" >&2
+  echo "Sonnet-level for Claude models. Use a Sonnet/Haiku tier or a non-Claude model." >&2
+  exit 1
+fi
+
+# --- LiteLLM helpers ---------------------------------------------------------
+if [[ "$LIST_MODELS" == 1 ]]; then
+  : "${WOLFRAM_LLM_API_KEY:?WOLFRAM_LLM_API_KEY not set (it lives in ~/.bash_profile)}"
+  echo "Models callable via $LITELLM_BASE :"
+  curl -s "$LITELLM_BASE/v1/models" \
+    -H "Authorization: Bearer $WOLFRAM_LLM_API_KEY" \
+    | python3 -c "import sys,json; print('\n'.join('  '+m['id'] for m in json.load(sys.stdin)['data']))"
+  exit 0
+fi
 
 # This machine exports GITHUB_TOKEN (a PAT) in ~/.zshrc, which overrides gh's
 # keyring credentials and may lack push rights to this repo (=> 403 on push).
@@ -16,7 +95,7 @@ cd "$(dirname "$0")/.."
 # GITHUB_TOKEN is the credential you actually want headless runs to push with.
 unset GITHUB_TOKEN
 
-ID="${1:?usage: run-research.sh <issue-number | slug> [inline seed text]}"
+ID="${1:?usage: run-research.sh [--router] [--model <id>] [--experimenter-model <id>] <issue-number | slug> [inline seed text]}"
 SEED="${2:-}"
 
 if [[ -z "$SEED" && "$ID" =~ ^[0-9]+$ ]]; then
@@ -33,8 +112,40 @@ PROMPT="$(cat prompts/research-loop.md)
 $SEED
 "
 
+# --- model routing -----------------------------------------------------------
+# Subagents pick their model via the opus/sonnet/haiku aliases in their
+# frontmatter; we remap those aliases per mode with ANTHROPIC_DEFAULT_*_MODEL.
+MODEL_FLAG=()
+if [[ "$ROUTER" == 1 ]]; then
+  : "${WOLFRAM_LLM_API_KEY:?WOLFRAM_LLM_API_KEY not set (it lives in ~/.bash_profile)}"
+  : "${MODEL:=claude-opus-4-7}"
+  : "${EXP_MODEL:=claude-sonnet-4-6}"
+  echo "Routing ALL agents through $LITELLM_BASE"
+  echo "  orchestrator: $MODEL    experimenter/refuter: $EXP_MODEL    writer/fast: claude-haiku-4-5"
+  export ANTHROPIC_BASE_URL="$LITELLM_BASE"
+  export ANTHROPIC_AUTH_TOKEN="$WOLFRAM_LLM_API_KEY"
+  # The bearer token is the credential; a lingering ANTHROPIC_API_KEY would conflict.
+  unset ANTHROPIC_API_KEY
+  export ANTHROPIC_DEFAULT_SONNET_MODEL="$EXP_MODEL"
+  export ANTHROPIC_DEFAULT_HAIKU_MODEL="claude-haiku-4-5"
+  export ANTHROPIC_SMALL_FAST_MODEL="claude-haiku-4-5"
+  MODEL_FLAG=(--model "$MODEL")
+else
+  # 1P Claude. Only override aliases the user explicitly pinned.
+  [[ -n "$EXP_MODEL" ]] && export ANTHROPIC_DEFAULT_SONNET_MODEL="$EXP_MODEL"
+  [[ -n "$MODEL" ]] && MODEL_FLAG=(--model "$MODEL")
+fi
+
+# WS_STREAM=1 emits the live JSON event stream (init, subagent spawns, tool
+# calls, results) instead of one final blob — the control panel sets this and
+# renders it as readable progress. Plain CLI runs leave it off.
+STREAM_FLAGS=()
+[[ "${WS_STREAM:-0}" == 1 ]] && STREAM_FLAGS=(--output-format stream-json --verbose)
+
 # acceptEdits + the allowlist in .claude/settings.json keep this unattended.
 # For a fully hands-off run on a trusted machine, add --dangerously-skip-permissions.
 exec claude -p "$PROMPT" \
+  "${MODEL_FLAG[@]}" \
+  "${STREAM_FLAGS[@]}" \
   --permission-mode acceptEdits \
-  --append-system-prompt "You are operating as the autonomous Wolfram Scientist. Research id: $ID."
+  --append-system-prompt "You are operating as the autonomous Wolfram Scientist orchestrator. Research id: $ID."
