@@ -129,7 +129,8 @@ Engine and switch the workflow to the local stdio server.
 | `.claude/agents/` | Subagents: `experimenter`, `refuter`, `writer` (own tools + model) |
 | `bin/run-research.sh` | Local headless runner (`--explore` / `--router` / `--model` / `--experimenter-model`) |
 | `bin/run-metrics.py` | Post-run: reduce the run's telemetry → `run-meta.json` + `run-meta.md` (model roster, tokens, time, tool calls, est. cost) |
-| `bin/model-prices.json` | Editable per-model price table for cost estimates (esp. router/non-Claude) |
+| `bin/model-prices.json` | Editable per-model price table for cost estimates (all router models; Claude/GPT list prices, others flagged estimates) |
+| `bin/refresh-prices.py` | Regenerate the price table from the router's `/model/info` (needs an admin key) |
 | `bin/control-panel.py` | Local web UI (stdlib only) to set the knobs and stream runs |
 | `.mcp.json.example` | Template for the local Wolfram kernel (MCP, stdio); copy to `.mcp.json` and edit paths |
 | `.claude/settings.json` | Tool allowlist for unattended runs |

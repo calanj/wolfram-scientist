@@ -1,18 +1,62 @@
 {
-  "_note": "Per-model price table for run-metrics.py cost ESTIMATES. Units are USD per million tokens. Claude figures are public list prices; router (non-Claude) figures are estimates and should be refreshed from your gateway's pricing. Matching: exact model id first, then the substring heuristics in _heuristics, then _default. Edit freely; cost is reported as an estimate.",
+  "_note": "Per-model price table for run-metrics.py cost ESTIMATES. Units are USD per million tokens. Keys match the router's exact model ids (GET /v1/models). Claude/GPT figures are public list prices; entries marked \"estimate\": true are best-effort and should be corrected, or refreshed wholesale with bin/refresh-prices.py once an admin key can read /model/info. Matching: exact id first, then the substring _heuristics, then _default.",
   "_default": { "input": 1.0, "output": 5.0, "cacheRead": 0.1, "cacheCreation": 1.25, "estimate": true },
   "_heuristics": [
-    { "contains": "opus",   "use": "claude-opus" },
-    { "contains": "sonnet", "use": "claude-sonnet" },
-    { "contains": "haiku",  "use": "claude-haiku" },
-    { "contains": "kimi",   "use": "Kimi-K2.6" },
-    { "contains": "glm",    "use": "zai.glm-5" }
+    { "contains": "opus",    "use": "claude-opus" },
+    { "contains": "sonnet",  "use": "claude-sonnet" },
+    { "contains": "haiku",   "use": "claude-haiku" },
+    { "contains": "fable",   "use": "claude-fable-5" },
+    { "contains": "kimi",    "use": "Kimi-K2.6" },
+    { "contains": "glm 4",   "use": "zai-glm-4-7-flash" },
+    { "contains": "glm-4",   "use": "zai-glm-4-7-flash" },
+    { "contains": "glm",     "use": "zai-glm-5" },
+    { "contains": "minimax", "use": "Bedrock: MiniMax M2.5" },
+    { "contains": "llama",   "use": "Llama-3.3-70B-Instruct" },
+    { "contains": "gemma",   "use": "Local-Gemma4-26B-A4B" },
+    { "contains": "qwen",    "use": "Local-Qwen3.6-27B" },
+    { "contains": "nano",    "use": "gpt-5.4-nano" },
+    { "contains": "codex-mini", "use": "gpt-5.1-codex-mini" },
+    { "contains": "mini",    "use": "gpt-5-mini" },
+    { "contains": "gpt-4o",  "use": "gpt-4o-mini" },
+    { "contains": "gpt",     "use": "gpt-5.1" },
+    { "contains": "embedding", "use": "text-embedding-3-small" }
   ],
   "models": {
     "claude-opus":   { "input": 15.0, "output": 75.0, "cacheRead": 1.5,  "cacheCreation": 18.75 },
     "claude-sonnet": { "input": 3.0,  "output": 15.0, "cacheRead": 0.3,  "cacheCreation": 3.75 },
     "claude-haiku":  { "input": 1.0,  "output": 5.0,  "cacheRead": 0.1,  "cacheCreation": 1.25 },
-    "Kimi-K2.6":     { "input": 0.6,  "output": 2.5,  "cacheRead": 0.0,  "cacheCreation": 0.0, "estimate": true },
-    "zai.glm-5":     { "input": 0.6,  "output": 2.2,  "cacheRead": 0.0,  "cacheCreation": 0.0, "estimate": true }
+
+    "Anthropic Claude Opus 4.8": { "input": 15.0, "output": 75.0, "cacheRead": 1.5,  "cacheCreation": 18.75 },
+    "claude-opus-4-7":           { "input": 15.0, "output": 75.0, "cacheRead": 1.5,  "cacheCreation": 18.75 },
+    "claude-sonnet-4-6":         { "input": 3.0,  "output": 15.0, "cacheRead": 0.3,  "cacheCreation": 3.75 },
+    "claude-haiku-4-5":          { "input": 1.0,  "output": 5.0,  "cacheRead": 0.1,  "cacheCreation": 1.25 },
+    "claude-fable-5":            { "input": 3.0,  "output": 15.0, "cacheRead": 0.3,  "cacheCreation": 3.75, "estimate": true },
+
+    "GPT-5.5":            { "input": 1.25, "output": 10.0, "cacheRead": 0.125, "cacheCreation": 0.0, "estimate": true },
+    "gpt-5.1":            { "input": 1.25, "output": 10.0, "cacheRead": 0.125, "cacheCreation": 0.0, "estimate": true },
+    "gpt-5.4":            { "input": 1.25, "output": 10.0, "cacheRead": 0.125, "cacheCreation": 0.0, "estimate": true },
+    "gpt-5.1-codex-max":  { "input": 1.25, "output": 10.0, "cacheRead": 0.125, "cacheCreation": 0.0, "estimate": true },
+    "gpt-5.3-codex":      { "input": 1.25, "output": 10.0, "cacheRead": 0.125, "cacheCreation": 0.0, "estimate": true },
+    "gpt-5.4-mini":       { "input": 0.25, "output": 2.0,  "cacheRead": 0.025, "cacheCreation": 0.0, "estimate": true },
+    "gpt-5-mini":         { "input": 0.25, "output": 2.0,  "cacheRead": 0.025, "cacheCreation": 0.0, "estimate": true },
+    "gpt-5.1-codex-mini": { "input": 0.25, "output": 2.0,  "cacheRead": 0.025, "cacheCreation": 0.0, "estimate": true },
+    "gpt-5.4-nano":       { "input": 0.05, "output": 0.4,  "cacheRead": 0.005, "cacheCreation": 0.0, "estimate": true },
+    "gpt-4o-mini":        { "input": 0.15, "output": 0.6,  "cacheRead": 0.075, "cacheCreation": 0.0 },
+
+    "Kimi-K2.6": { "input": 0.6, "output": 2.5, "cacheRead": 0.15, "cacheCreation": 0.0, "estimate": true },
+    "Kimi-K2.5": { "input": 0.6, "output": 2.5, "cacheRead": 0.15, "cacheCreation": 0.0, "estimate": true },
+
+    "zai-glm-5":             { "input": 0.6,  "output": 2.2, "cacheRead": 0.11, "cacheCreation": 0.0, "estimate": true },
+    "Bedrock: Z.ai GLM 5":   { "input": 0.6,  "output": 2.2, "cacheRead": 0.11, "cacheCreation": 0.0, "estimate": true },
+    "zai-glm-4-7-flash":     { "input": 0.1,  "output": 0.4, "cacheRead": 0.0,  "cacheCreation": 0.0, "estimate": true },
+    "Bedrock: Z.ai GLM 4.7 Flash": { "input": 0.1, "output": 0.4, "cacheRead": 0.0, "cacheCreation": 0.0, "estimate": true },
+
+    "Bedrock: MiniMax M2.5":   { "input": 0.3,  "output": 1.2, "cacheRead": 0.0, "cacheCreation": 0.0, "estimate": true },
+    "Llama-3.3-70B-Instruct":  { "input": 0.2,  "output": 0.6, "cacheRead": 0.0, "cacheCreation": 0.0, "estimate": true },
+
+    "Local-Gemma4-26B-A4B": { "input": 0.0, "output": 0.0, "cacheRead": 0.0, "cacheCreation": 0.0, "estimate": true, "note": "self-hosted; no per-token billing" },
+    "Local-Qwen3.6-27B":    { "input": 0.0, "output": 0.0, "cacheRead": 0.0, "cacheCreation": 0.0, "estimate": true, "note": "self-hosted; no per-token billing" },
+
+    "text-embedding-3-small": { "input": 0.02, "output": 0.0, "cacheRead": 0.0, "cacheCreation": 0.0 }
   }
 }
