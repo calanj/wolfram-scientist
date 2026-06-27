@@ -51,7 +51,20 @@ prompts/research-loop.md  +  CLAUDE.md   (the procedure + the rigor rules)
 ```bash
 bin/run-research.sh 12                          # research issue #12
 bin/run-research.sh ca-elementary "Among ..."   # ad-hoc seed, no issue needed
+bin/run-research.sh --explore                   # open-ended: survey past work,
+                                                # propose & pursue a new line
 ```
+
+**Open-ended start (`--explore`).** With no issue and no seed, the Scientist
+surveys its own portfolio (`research/`, `JOURNAL.md`, `lib/`), scores a slate of
+candidate questions against a value rubric (sharpness · stake · leverage ·
+non-duplication · cost · stop-condition, with a diversity guard against
+over-mined domains), and either **declines** (a clean "nothing worth doing this
+cycle", reported as a PR) or picks the best one, mints a slug, opens a **draft
+PR** with the proposal as the body, and pursues it through the normal loop —
+flipping the PR to ready when the findings settle. The draft PR is your early
+visibility + veto point: if the premise looks wrong, close it / stop the run.
+See `prompts/explore.md`.
 
 **First-time setup of the local kernel.** `.mcp.json` is git-ignored because it
 holds absolute, machine-specific paths. Create your own from the template:
@@ -111,6 +124,8 @@ Engine and switch the workflow to the local stdio server.
 |---|---|
 | `CLAUDE.md` | The Scientist's identity + non-negotiable rigor rules (always loaded) |
 | `prompts/research-loop.md` | The orchestrator's procedure for one request |
+| `prompts/explore.md` | Open-ended start (`--explore`): survey → propose → pursue |
+| `lib/data-sources.md` | Curated whitelist of external data sources (provenance via `lib/dataProvenance.wl`) |
 | `.claude/agents/` | Subagents: `experimenter`, `refuter`, `writer` (own tools + model) |
 | `bin/run-research.sh` | Local headless runner (`--router` / `--model` / `--experimenter-model`) |
 | `bin/control-panel.py` | Local web UI (stdlib only) to set the knobs and stream runs |
