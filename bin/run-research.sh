@@ -56,10 +56,12 @@ LITELLM_BASE="${LITELLM_BASE:-}"
 ROUTER="${WS_ROUTER:-0}"
 MODEL="${WS_MODEL:-}"                       # orchestrator model
 EXP_MODEL="${WS_EXPERIMENTER_MODEL:-}"      # experimenter/refuter model (sonnet alias)
+EXPLORE="${WS_EXPLORE:-0}"                  # open-ended start: no issue/seed
 LIST_MODELS=0
 POSITIONAL=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --explore)                 EXPLORE=1; shift ;;
     --router)                  ROUTER=1; shift ;;
     --model)                   MODEL="${2:?--model needs a model id}"; shift 2 ;;
     --model=*)                 MODEL="${1#*=}"; shift ;;
@@ -100,22 +102,57 @@ fi
 # GITHUB_TOKEN is the credential you actually want headless runs to push with.
 unset GITHUB_TOKEN
 
-ID="${1:?usage: run-research.sh [--router] [--model <id>] [--experimenter-model <id>] <issue-number | slug> [inline seed text]}"
-SEED="${2:-}"
+if [[ "$EXPLORE" == 1 ]]; then
+  # Open-ended start: no issue, no seed. The agent surveys prior research,
+  # proposes a line of inquiry, and (if it clears the bar) pursues it — minting
+  # its own slug. RESEARCH_DIR is therefore unknown until the agent picks one.
+  ID="explore"
+  echo "Open-ended run: surveying prior research to choose a new line of inquiry."
+  PROMPT="$(cat prompts/explore.md)"
+else
+  ID="${1:?usage: run-research.sh [--explore] [--router] [--model <id>] [--experimenter-model <id>] <issue-number | slug> [inline seed text]}"
+  SEED="${2:-}"
 
-if [[ -z "$SEED" && "$ID" =~ ^[0-9]+$ ]]; then
-  echo "Fetching issue #$ID ..."
-  SEED="$(gh issue view "$ID" --json title,body \
-          --template '{{.title}}{{"\n\n"}}{{.body}}')"
-fi
-[[ -n "$SEED" ]] || { echo "No issue body found and no inline seed given." >&2; exit 1; }
+  if [[ -z "$SEED" && "$ID" =~ ^[0-9]+$ ]]; then
+    echo "Fetching issue #$ID ..."
+    SEED="$(gh issue view "$ID" --json title,body \
+            --template '{{.title}}{{"\n\n"}}{{.body}}')"
+  fi
+  [[ -n "$SEED" ]] || { echo "No issue body found and no inline seed given." >&2; exit 1; }
 
-PROMPT="$(cat prompts/research-loop.md)
+  # --- pre-stage GitHub attachment files -------------------------------------
+  # A user can attach a data file to the issue; GitHub leaves a link in the body.
+  # For a PRIVATE repo those links need auth the kernel lacks, so download them
+  # here with gh's credentials into research/<id>/inputs/. The orchestrator then
+  # `dataRegister`s them (provenance) instead of re-fetching. Best-effort and
+  # non-fatal: a failed pull just means the orchestrator tries dataFetch itself.
+  RESEARCH_DIR="research/$ID"
+  INPUTS_DIR="$RESEARCH_DIR/inputs"
+  ATTACH_URLS="$(printf '%s\n' "$SEED" | grep -oE \
+    'https://(github\.com/user-attachments/[^ )"]+|github\.com/[^/]+/[^/]+/assets/[^ )"]+|user-images\.githubusercontent\.com/[^ )"]+)' \
+    | sort -u || true)"
+  if [[ -n "$ATTACH_URLS" ]]; then
+    mkdir -p "$INPUTS_DIR"
+    GH_TOKEN_HDR=()
+    if tok="$(gh auth token 2>/dev/null)" && [[ -n "$tok" ]]; then
+      GH_TOKEN_HDR=(-H "Authorization: token $tok")
+    fi
+    while IFS= read -r u; do
+      [[ -z "$u" ]] && continue
+      fname="$(basename "${u%%\?*}")"
+      echo "Staging attachment: $fname"
+      curl -fsSL "${GH_TOKEN_HDR[@]}" "$u" -o "$INPUTS_DIR/$fname" \
+        || echo "  (attachment download failed; orchestrator will try dataFetch)" >&2
+    done <<< "$ATTACH_URLS"
+  fi
+
+  PROMPT="$(cat prompts/research-loop.md)
 
 ## This research request (id: $ID)
 
 $SEED
 "
+fi
 
 # --- model routing -----------------------------------------------------------
 # Subagents pick their model via the opus/sonnet/haiku aliases in their
@@ -148,10 +185,71 @@ fi
 STREAM_FLAGS=()
 [[ "${WS_STREAM:-0}" == 1 ]] && STREAM_FLAGS=(--output-format stream-json --verbose)
 
+# --- record the model roster (deterministic; metrics filled post-run) --------
+# "Which model worked on which part" is known HERE, from the resolved flags —
+# so we record it deterministically. Token/time/tool metrics are NOT guessed by
+# any agent (a model can't introspect its own usage); they are measured later by
+# bin/run-metrics.py from the run's telemetry. This writes the roster only.
+STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+SESSION_ID="$(uuidgen | tr 'A-Z' 'a-z')"   # pin the session so run-metrics.py can find the transcript
+if [[ "$ROUTER" == 1 ]]; then
+  RM_MODE="router"; RM_ORCH="$MODEL"; RM_EXP="$EXP_MODEL"
+  RM_WRITER="claude-haiku-4-5"; RM_GATEWAY="\"$LITELLM_BASE\""
+else
+  RM_MODE="1p"
+  RM_ORCH="${MODEL:-(1P session default)}"
+  RM_EXP="${EXP_MODEL:-sonnet (1P default)}"
+  RM_WRITER="haiku (1P default)"; RM_GATEWAY="null"
+fi
+RUN_META_JSON="$(cat <<JSON
+{
+  "id": "$ID",
+  "startedAt": "$STARTED_AT",
+  "mode": "$RM_MODE",
+  "gateway": $RM_GATEWAY,
+  "models": {
+    "orchestrator": "$RM_ORCH",
+    "experimenter_refuter": "$RM_EXP",
+    "writer_fast": "$RM_WRITER"
+  },
+  "metrics": null,
+  "metricsNote": "Populated post-run by bin/run-metrics.py from the run's telemetry; agents do not self-report counts."
+}
+JSON
+)"
+if [[ "$EXPLORE" == 1 ]]; then
+  # In explore mode the slug (hence research dir) is chosen by the agent; hand it
+  # the roster via the environment to place at research/<slug>/run-meta.json
+  # (explore.md instructs this).
+  export WS_ROSTER_JSON="$RUN_META_JSON"
+else
+  mkdir -p "$RESEARCH_DIR"
+  printf '%s\n' "$RUN_META_JSON" > "$RESEARCH_DIR/run-meta.json"
+fi
+
 # acceptEdits + the allowlist in .claude/settings.json keep this unattended.
 # For a fully hands-off run on a trusted machine, add --dangerously-skip-permissions.
-exec claude -p "$PROMPT" \
+# NB: not `exec` — we run a post-run metrics pass once the agent exits.
+set +e
+claude -p "$PROMPT" \
   "${MODEL_FLAG[@]}" \
   "${STREAM_FLAGS[@]}" \
+  --session-id "$SESSION_ID" \
   --permission-mode acceptEdits \
   --append-system-prompt "You are operating as the autonomous Wolfram Scientist orchestrator. Research id: $ID."
+CLAUDE_RC=$?
+set -e
+
+# --- post-run metrics (measured from telemetry; never fails the run) ---------
+# Reduces the run's transcript(s) to a metrics block merged into
+# research/<id>/run-meta.json (+ run-meta.md). Model-agnostic: reads the model
+# recorded per turn, so router runs on non-Claude models are measured too.
+META_ARGS=(--session-id "$SESSION_ID" --project-dir "$PWD" --started-at "$STARTED_AT")
+[[ "$EXPLORE" == 1 ]] || META_ARGS+=(--research-dir "$RESEARCH_DIR")
+META_OUT="$(/usr/bin/python3 bin/run-metrics.py "${META_ARGS[@]}" 2>&1)" \
+  || echo "run-metrics: post-run metrics step skipped/failed (non-fatal)." >&2
+printf '%s\n' "$META_OUT"
+# run-meta.{json,md} are git-ignored on purpose: generated locally for your own
+# reference, never committed. Find them under the run's research/<id>/ directory.
+
+exit "$CLAUDE_RC"

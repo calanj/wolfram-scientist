@@ -41,6 +41,35 @@ back to you, not shown to the user — relay/assemble what matters.
      (`URLRead` / `Import` / curated `Entity` data) and cite it.
    - If no external context is needed, skip this step and note why in `plan.md`.
 
+   **External data is provenance-tracked (never a bare `Import[url]`).** If the
+   request provides or points to a dataset — inline data, one or more URLs, or a
+   GitHub attachment link — OR the study otherwise needs data from *outside*
+   Wolfram's curated knowledge base, that data is the study's **primary input**
+   and MUST go through `lib/dataProvenance.wl`:
+   - An experimenter `Get["lib/dataProvenance.wl"]`, then for each source either
+     `dataFetch[url, dataInputsDir[id], "Source" -> <tag>]` (a URL) or, for
+     inline-pasted data and pre-staged attachments, `dataRegister[dir, file,
+     "Source" -> <tag>, "URL" -> <origin>]`. Both cache the raw payload under
+     `research/<id>/inputs/`, SHA-256 fingerprint it, and record URL + shape +
+     fetch time in `inputs/manifest.json`. Read it back with `dataLoad[dir, key]`.
+   - Pick `<tag>` from `lib/data-sources.md` for a whitelist source; otherwise
+     tag it `"discovery"` and, if it proves clean and reusable, add it to
+     `data-sources.md` in this PR.
+   - `experiment.wl` must call `dataFetch`/`dataLoad` (not a raw download) at the
+     top so it regenerates every result from the local cache in a fresh kernel —
+     that is the reproducibility contract for empirical studies. `dataFetch` is
+     idempotent, so re-runs don't re-download.
+   - "Commit small, hash large" is automatic (the lib manages
+     `inputs/.gitignore`). In `findings.md`, note which inputs are committed vs
+     cached-by-hash, and record the dataset's provenance (source, fetch time,
+     SHA-256) so the empirical claim is auditable.
+   - Data pulled from the web/issue is **external and unverified** — the dataset
+     is the input, not the finding; every quantitative claim built on it must
+     still be computed and refuted in-kernel.
+   - If the runner pre-staged attachment files (a private-repo attachment the
+     kernel can't auth-fetch), they are already in `research/<id>/inputs/`;
+     `dataRegister` them rather than re-fetching.
+
 5. **Experiment.** For each sub-experiment, spawn an **experimenter** with a
    self-contained spec (+ pointer to `context.md` if relevant) and the
    `experiment.wl` path. Collect the returned results.
