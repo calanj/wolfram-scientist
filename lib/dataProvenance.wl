@@ -151,6 +151,48 @@ dataFetch[url_String, dir_String, opts : OptionsPattern[]] := Module[
 
 dataFetch::dl = "Download failed for `1` -- nothing cached. Check the URL/network.";
 
+(* dataRegister: bring an ALREADY-LOCAL file under provenance, with no download.
+   Covers the two non-URL channels an issue can supply data through:
+     - inline data pasted into the issue (Export it to a file, then register);
+     - a GitHub attachment the runner pre-staged into inputs/ (private-repo
+       attachments need gh auth the kernel lacks, so the runner fetches them).
+   Same manifest + SHA-256 + commit-small/hash-large policy as dataFetch. If
+   `file` lives outside `dir` it is copied in first. Record the origin via the
+   "URL" option (e.g. the attachment link) so the manifest stays auditable. *)
+Options[dataRegister] = {
+  "Source" -> "discovery", "URL" -> None, "Format" -> Automatic,
+  "Threshold" :> $dataCommitThreshold};
+
+dataRegister[dir_String, file_String, opts : OptionsPattern[]] := Module[
+  {source, url, fmt, threshold, name, path, entries, bytes, hash, committed, shape, entry},
+  source    = OptionValue["Source"];
+  url       = OptionValue["URL"];
+  fmt       = OptionValue["Format"];
+  threshold = OptionValue["Threshold"];
+  name      = FileNameTake[file];
+  If[! DirectoryQ[dir], CreateDirectory[dir, CreateIntermediateDirectories -> True]];
+  path = FileNameJoin[{dir, name}];
+  If[AbsoluteFileName[file] =!= Quiet@AbsoluteFileName[path] && FileExistsQ[file],
+    CopyFile[file, path, OverwriteTarget -> True]];
+  If[! FileExistsQ[path],
+    Message[dataRegister::nofile, file]; Return[$Failed]];
+  bytes     = FileByteCount[path];
+  hash      = FileHash[path, "SHA256", "HexString"];
+  committed = bytes <= threshold;
+  shape     = dataShape[path, fmt];
+  entry = <|
+    "Key" -> name, "File" -> name, "URL" -> If[url === None, "(local)", url],
+    "Source" -> source, "SHA256" -> hash, "Bytes" -> bytes, "Shape" -> shape,
+    "FetchedOn" -> DateString["ISODateTime"], "Committed" -> committed|>;
+  entries = dataManifest[dir];
+  entries = Append[DeleteCases[entries, e_ /; e["Key"] === name], entry];
+  Export[FileNameJoin[{dir, "manifest.json"}], entries, "RawJSON"];
+  dataWriteGitignore[dir, entries];
+  entry
+];
+
+dataRegister::nofile = "No file at `1` to register.";
+
 Options[dataLoad] = {"Format" -> Automatic};
 
 dataLoad[dir_String, key_String, opts : OptionsPattern[]] := Module[

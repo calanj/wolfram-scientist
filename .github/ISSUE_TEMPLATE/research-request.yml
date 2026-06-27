@@ -25,6 +25,31 @@ body:
       label: What would make this interesting?
       description: Optional. What kind of result would you find worth reporting?
       placeholder: "A non-obvious classifier, an unexpected outlier, or a clean negative result."
+  - type: textarea
+    id: data
+    attributes:
+      label: Data / initial targets
+      description: >
+        Optional. If this study should run on specific external data (outside
+        Wolfram's curated knowledge base), provide it here: paste a small table
+        inline, give one or more dataset URLs, or attach a file (drag it onto
+        the issue — GitHub turns it into a link). Anything you provide becomes
+        the study's PRIMARY dataset; the Scientist caches and SHA-256
+        fingerprints it for reproducibility (see lib/data-sources.md and
+        lib/dataProvenance.wl). Leave blank for a self-contained computational
+        study.
+      placeholder: |
+        https://earthquake.usgs.gov/fdsnws/event/1/query?format=csv&starttime=2024-01-01&endtime=2024-02-01&minmagnitude=2.5
+        (or paste a CSV/table directly, or attach a file)
+  - type: input
+    id: data_source
+    attributes:
+      label: Data source
+      description: >
+        Optional. A whitelist source name (USGS, FRED, World Bank, GBIF,
+        Open-Meteo, OpenAlex, openFDA) or "discovery" for an ad-hoc source.
+        See lib/data-sources.md.
+      placeholder: USGS
   - type: input
     id: budget
     attributes:
