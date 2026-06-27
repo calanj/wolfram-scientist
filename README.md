@@ -127,7 +127,9 @@ Engine and switch the workflow to the local stdio server.
 | `prompts/explore.md` | Open-ended start (`--explore`): survey → propose → pursue |
 | `lib/data-sources.md` | Curated whitelist of external data sources (provenance via `lib/dataProvenance.wl`) |
 | `.claude/agents/` | Subagents: `experimenter`, `refuter`, `writer` (own tools + model) |
-| `bin/run-research.sh` | Local headless runner (`--router` / `--model` / `--experimenter-model`) |
+| `bin/run-research.sh` | Local headless runner (`--explore` / `--router` / `--model` / `--experimenter-model`) |
+| `bin/run-metrics.py` | Post-run: reduce the run's telemetry → `run-meta.json` + `run-meta.md` (model roster, tokens, time, tool calls, est. cost) |
+| `bin/model-prices.json` | Editable per-model price table for cost estimates (esp. router/non-Claude) |
 | `bin/control-panel.py` | Local web UI (stdlib only) to set the knobs and stream runs |
 | `.mcp.json.example` | Template for the local Wolfram kernel (MCP, stdio); copy to `.mcp.json` and edit paths |
 | `.claude/settings.json` | Tool allowlist for unattended runs |
@@ -135,7 +137,7 @@ Engine and switch the workflow to the local stdio server.
 | `.github/workflows/scientist.yml` | `@claude` issue trigger (remote MCP) |
 | `lib/` | Accreted reusable WL functions (self-improvement) |
 | `JOURNAL.md` | Methods log (self-improvement) |
-| `research/<id>/` | Per-request outputs: `plan.md`, `experiment.wl`, `findings.md`, `notebook.nb` |
+| `research/<id>/` | Per-request outputs: `plan.md`, `experiment.wl`, `findings.md`, `notebook.nb`, `run-meta.{json,md}`, `inputs/` (provenance-tracked data) |
 
 ## Findings
 

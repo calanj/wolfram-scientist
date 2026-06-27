@@ -1,0 +1,18 @@
+{
+  "_note": "Per-model price table for run-metrics.py cost ESTIMATES. Units are USD per million tokens. Claude figures are public list prices; router (non-Claude) figures are estimates and should be refreshed from your gateway's pricing. Matching: exact model id first, then the substring heuristics in _heuristics, then _default. Edit freely; cost is reported as an estimate.",
+  "_default": { "input": 1.0, "output": 5.0, "cacheRead": 0.1, "cacheCreation": 1.25, "estimate": true },
+  "_heuristics": [
+    { "contains": "opus",   "use": "claude-opus" },
+    { "contains": "sonnet", "use": "claude-sonnet" },
+    { "contains": "haiku",  "use": "claude-haiku" },
+    { "contains": "kimi",   "use": "Kimi-K2.6" },
+    { "contains": "glm",    "use": "zai.glm-5" }
+  ],
+  "models": {
+    "claude-opus":   { "input": 15.0, "output": 75.0, "cacheRead": 1.5,  "cacheCreation": 18.75 },
+    "claude-sonnet": { "input": 3.0,  "output": 15.0, "cacheRead": 0.3,  "cacheCreation": 3.75 },
+    "claude-haiku":  { "input": 1.0,  "output": 5.0,  "cacheRead": 0.1,  "cacheCreation": 1.25 },
+    "Kimi-K2.6":     { "input": 0.6,  "output": 2.5,  "cacheRead": 0.0,  "cacheCreation": 0.0, "estimate": true },
+    "zai.glm-5":     { "input": 0.6,  "output": 2.2,  "cacheRead": 0.0,  "cacheCreation": 0.0, "estimate": true }
+  }
+}

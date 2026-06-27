@@ -190,6 +190,8 @@ STREAM_FLAGS=()
 # so we record it deterministically. Token/time/tool metrics are NOT guessed by
 # any agent (a model can't introspect its own usage); they are measured later by
 # bin/run-metrics.py from the run's telemetry. This writes the roster only.
+STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+SESSION_ID="$(uuidgen | tr 'A-Z' 'a-z')"   # pin the session so run-metrics.py can find the transcript
 if [[ "$ROUTER" == 1 ]]; then
   RM_MODE="router"; RM_ORCH="$MODEL"; RM_EXP="$EXP_MODEL"
   RM_WRITER="claude-haiku-4-5"; RM_GATEWAY="\"$LITELLM_BASE\""
@@ -202,7 +204,7 @@ fi
 RUN_META_JSON="$(cat <<JSON
 {
   "id": "$ID",
-  "startedAt": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+  "startedAt": "$STARTED_AT",
   "mode": "$RM_MODE",
   "gateway": $RM_GATEWAY,
   "models": {
@@ -227,8 +229,39 @@ fi
 
 # acceptEdits + the allowlist in .claude/settings.json keep this unattended.
 # For a fully hands-off run on a trusted machine, add --dangerously-skip-permissions.
-exec claude -p "$PROMPT" \
+# NB: not `exec` — we run a post-run metrics pass once the agent exits.
+set +e
+claude -p "$PROMPT" \
   "${MODEL_FLAG[@]}" \
   "${STREAM_FLAGS[@]}" \
+  --session-id "$SESSION_ID" \
   --permission-mode acceptEdits \
   --append-system-prompt "You are operating as the autonomous Wolfram Scientist orchestrator. Research id: $ID."
+CLAUDE_RC=$?
+set -e
+
+# --- post-run metrics (measured from telemetry; never fails the run) ---------
+# Reduces the run's transcript(s) to a metrics block merged into
+# research/<id>/run-meta.json (+ run-meta.md). Model-agnostic: reads the model
+# recorded per turn, so router runs on non-Claude models are measured too.
+META_ARGS=(--session-id "$SESSION_ID" --project-dir "$PWD" --started-at "$STARTED_AT")
+[[ "$EXPLORE" == 1 ]] || META_ARGS+=(--research-dir "$RESEARCH_DIR")
+META_OUT="$(/usr/bin/python3 bin/run-metrics.py "${META_ARGS[@]}" 2>&1)" \
+  || echo "run-metrics: post-run metrics step skipped/failed (non-fatal)." >&2
+printf '%s\n' "$META_OUT"
+
+# Commit the metrics onto the run's branch so they land in the PR (the agent
+# finished before metrics existed). Best-effort, never on main/master.
+RDIR="$(printf '%s\n' "$META_OUT" | sed -n 's/^RESEARCH_DIR=//p' | tail -1)"
+if [[ -n "$RDIR" && -d "$RDIR" ]]; then
+  CUR_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo)"
+  if [[ -n "$CUR_BRANCH" && "$CUR_BRANCH" != "main" && "$CUR_BRANCH" != "master" ]]; then
+    git add "$RDIR/run-meta.json" "$RDIR/run-meta.md" 2>/dev/null \
+      && git commit -q -m "chore: add measured run metrics for $(basename "$RDIR")" 2>/dev/null \
+      && git push -q 2>/dev/null \
+      && echo "run-metrics: committed metrics to $CUR_BRANCH" \
+      || echo "run-metrics: metrics written locally (commit/push skipped)." >&2
+  fi
+fi
+
+exit "$CLAUDE_RC"
