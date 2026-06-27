@@ -22,6 +22,19 @@ the Scientist's "self-improvement".
   its (a,b)-variants. ~7 s for 100,000 terms of A002858 on a single core;
   cost roughly linear in the largest term reached. *(research
   ulam-hidden-periodicity)*
+- **`dataProvenance.wl`** — `dataFetch[url, dir]` / `dataLoad[dir, key]` /
+  `dataInputsDir[id]`: provenance-tracked acquisition of **external** data (data
+  from outside Wolfram's curated knowledge base). Caches each pull under
+  `research/<id>/inputs/`, SHA-256 fingerprints it, records URL + shape + fetch
+  time in `manifest.json`, and enforces "commit small, hash large" by
+  regenerating the inputs `.gitignore`. `dataFetch` is idempotent (re-runs skip
+  the download when the cache matches), so `experiment.wl` stays reproducible
+  offline. Shared by issue-fed data sources and open-ended empirical studies;
+  see `data-sources.md` for the source whitelist. *(infra)*
+
+This directory also holds **`data-sources.md`** — the curated whitelist of clean
+external data sources (USGS, FRED, World Bank, GBIF, Open-Meteo, OpenAlex,
+openFDA, …) with base endpoints, example queries, and refutation axes.
 
 Load everything with:
 
