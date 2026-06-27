@@ -13,10 +13,10 @@
    This file is that discipline, expressed as in-kernel functions.
 
    Storage policy ("commit small, hash large"): a raw payload at or under the
-   size threshold (default 5 MB) is marked for committing into
+   size threshold (default 256 KB) is marked for committing into
    research/<id>/inputs/ so the PR is self-contained; a larger payload is cached
    locally but git-ignored, with only its URL + SHA-256 + shape kept in the
-   (always-committed) manifest. The threshold is enforced mechanically: this
+   (always-committed) manifest, and re-fetched on demand (hash verifies it). The threshold is enforced mechanically: this
    file regenerates research/<id>/inputs/.gitignore from the manifest on every
    fetch, so large payloads are never accidentally committed.
 
@@ -57,8 +57,12 @@ starttime=2024-01-01&endtime=2024-02-01&minmagnitude=2.5",
    empirical studies (2026-06-27).
    ============================================================ *)
 
-(* Default commit/no-commit cutoff: 5 MB. Override per-call via "Threshold". *)
-$dataCommitThreshold = 5 * 2^20;
+(* Default commit/no-commit cutoff: 256 KB. Public, re-fetchable datasets are
+   usually larger than this, so they stay hash-only (cached locally, not
+   committed) and experiment.wl re-fetches them from the manifest URL with the
+   SHA-256 verifying integrity -- keeping the repo and PRs lean. Bump per-call
+   via "Threshold" for a study that must be fully self-contained offline. *)
+$dataCommitThreshold = 256 * 2^10;
 
 dataInputsDir[id_String] := Module[{dir},
   dir = FileNameJoin[{"research", id, "inputs"}];
