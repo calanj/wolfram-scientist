@@ -1,6 +1,6 @@
 {
-  "_note": "Per-model price table for run-metrics.py cost ESTIMATES. Units are USD per million tokens. Keys match the router's exact model ids (GET /v1/models). Claude/GPT figures are public list prices; entries marked \"estimate\": true are best-effort and should be corrected, or refreshed wholesale with bin/refresh-prices.py once an admin key can read /model/info. Matching: exact id first, then the substring _heuristics, then _default.",
-  "_default": { "input": 1.0, "output": 5.0, "cacheRead": 0.1, "cacheCreation": 1.25, "estimate": true },
+  "_note": "Per-model price table for run-metrics.py cost ESTIMATES. Units are USD per million tokens. Keys match the router's exact model ids (GET /v1/models). NOTE: figures are this LiteLLM GATEWAY's rates, NOT vendor list prices (e.g. routed Opus is $5/$25, a third of Anthropic list). Calibrated against a real run: this gateway does NOT bill cache creation (cacheCreation=0) and bills cache reads at ~0.1x input. Entries marked \"estimate\": true still need confirming against the dashboard; refresh wholesale with bin/refresh-prices.py once an admin key can read /model/info. Matching: exact id first, then the substring _heuristics, then _default.",
+  "_default": { "input": 1.0, "output": 5.0, "cacheRead": 0.1, "cacheCreation": 0.0, "estimate": true },
   "_heuristics": [
     { "contains": "opus",    "use": "claude-opus" },
     { "contains": "sonnet",  "use": "claude-sonnet" },
@@ -22,15 +22,15 @@
     { "contains": "embedding", "use": "text-embedding-3-small" }
   ],
   "models": {
-    "claude-opus":   { "input": 5.0, "output": 25.0, "cacheRead": 0.5, "cacheCreation": 6.25, "estimate": true },
-    "claude-sonnet": { "input": 3.0,  "output": 15.0, "cacheRead": 0.3,  "cacheCreation": 3.75 },
-    "claude-haiku":  { "input": 1.0,  "output": 5.0,  "cacheRead": 0.1,  "cacheCreation": 1.25 },
+    "claude-opus":   { "input": 5.0, "output": 25.0, "cacheRead": 0.5, "cacheCreation": 0.0, "estimate": true },
+    "claude-sonnet": { "input": 3.0, "output": 15.0, "cacheRead": 0.3, "cacheCreation": 0.0, "estimate": true },
+    "claude-haiku":  { "input": 1.0, "output": 5.0,  "cacheRead": 0.1, "cacheCreation": 0.0, "estimate": true },
 
-    "Anthropic Claude Opus 4.8": { "input": 5.0, "output": 25.0, "cacheRead": 0.5, "cacheCreation": 6.25, "estimate": true },
-    "claude-opus-4-7":           { "input": 5.0, "output": 25.0, "cacheRead": 0.5, "cacheCreation": 6.25, "estimate": true },
-    "claude-sonnet-4-6":         { "input": 3.0,  "output": 15.0, "cacheRead": 0.3,  "cacheCreation": 3.75 },
-    "claude-haiku-4-5":          { "input": 1.0,  "output": 5.0,  "cacheRead": 0.1,  "cacheCreation": 1.25 },
-    "claude-fable-5":            { "input": 3.0,  "output": 15.0, "cacheRead": 0.3,  "cacheCreation": 3.75, "estimate": true },
+    "Anthropic Claude Opus 4.8": { "input": 5.0, "output": 25.0, "cacheRead": 0.5, "cacheCreation": 0.0, "estimate": true },
+    "claude-opus-4-7":           { "input": 5.0, "output": 25.0, "cacheRead": 0.5, "cacheCreation": 0.0, "estimate": true },
+    "claude-sonnet-4-6":         { "input": 3.0, "output": 15.0, "cacheRead": 0.3, "cacheCreation": 0.0, "estimate": true },
+    "claude-haiku-4-5":          { "input": 1.0, "output": 5.0,  "cacheRead": 0.1, "cacheCreation": 0.0, "estimate": true },
+    "claude-fable-5":            { "input": 3.0, "output": 15.0, "cacheRead": 0.3, "cacheCreation": 0.0, "estimate": true },
 
     "GPT-5.5":            { "input": 1.25, "output": 10.0, "cacheRead": 0.125, "cacheCreation": 0.0, "estimate": true },
     "gpt-5.1":            { "input": 1.25, "output": 10.0, "cacheRead": 0.125, "cacheCreation": 0.0, "estimate": true },
