@@ -249,19 +249,7 @@ META_ARGS=(--session-id "$SESSION_ID" --project-dir "$PWD" --started-at "$STARTE
 META_OUT="$(/usr/bin/python3 bin/run-metrics.py "${META_ARGS[@]}" 2>&1)" \
   || echo "run-metrics: post-run metrics step skipped/failed (non-fatal)." >&2
 printf '%s\n' "$META_OUT"
-
-# Commit the metrics onto the run's branch so they land in the PR (the agent
-# finished before metrics existed). Best-effort, never on main/master.
-RDIR="$(printf '%s\n' "$META_OUT" | sed -n 's/^RESEARCH_DIR=//p' | tail -1)"
-if [[ -n "$RDIR" && -d "$RDIR" ]]; then
-  CUR_BRANCH="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo)"
-  if [[ -n "$CUR_BRANCH" && "$CUR_BRANCH" != "main" && "$CUR_BRANCH" != "master" ]]; then
-    git add "$RDIR/run-meta.json" "$RDIR/run-meta.md" 2>/dev/null \
-      && git commit -q -m "chore: add measured run metrics for $(basename "$RDIR")" 2>/dev/null \
-      && git push -q 2>/dev/null \
-      && echo "run-metrics: committed metrics to $CUR_BRANCH" \
-      || echo "run-metrics: metrics written locally (commit/push skipped)." >&2
-  fi
-fi
+# run-meta.{json,md} are git-ignored on purpose: generated locally for your own
+# reference, never committed. Find them under the run's research/<id>/ directory.
 
 exit "$CLAUDE_RC"
