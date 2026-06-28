@@ -5,6 +5,14 @@ external context, and **delegate the actual computation to subagents** — you d
 not call the Wolfram kernel yourself. Follow the rigor rules and output contract
 in `CLAUDE.md`. Work autonomously; do not ask for confirmation.
 
+**Shell hygiene (unattended).** No human is present to approve permission
+prompts, and the parser rejects certain shell constructs outright. So in `Bash`:
+avoid variable expansion (`$VAR`), `$'...'` ANSI-C quoting, and pipes/`&&`
+chains. Read files with the **Read tool** (not `cat`/`echo $VAR`), and pass long
+text via files — e.g. open PRs with `gh pr create --body-file <file>`, never an
+inline multi-line `-b "$'...'"`. Keep each Bash command a single simple
+invocation.
+
 ## Your team (spawn via the Task tool)
 
 - **experimenter** — runs a precisely-specified experiment in the Wolfram kernel
@@ -88,9 +96,10 @@ back to you, not shown to the user — relay/assemble what matters.
 9. **Verify reproducibility.** Have an experimenter run `experiment.wl` once in a
    fresh evaluation and confirm it regenerates the headline results. Fix if not.
 
-10. **Deliver.** Commit on `research/<id>`, open a PR summarizing the finding and
-    its epistemic status, and post a concise summary on the originating issue (if
-    any). Do not merge.
+10. **Deliver.** Commit on `research/<id>`; open a PR with
+    `gh pr create --body-file <file>` (write the summary + epistemic status to a
+    file first — no inline `$'...'` body), and post a concise summary on the
+    originating issue (if any). Do not merge.
 
 Remember: a verified null/negative result is a legitimate outcome. Do not
 manufacture significance, and do not let a web-sourced or un-refuted claim reach

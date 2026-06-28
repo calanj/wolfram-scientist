@@ -217,12 +217,14 @@ RUN_META_JSON="$(cat <<JSON
 }
 JSON
 )"
-if [[ "$EXPLORE" == 1 ]]; then
-  # In explore mode the slug (hence research dir) is chosen by the agent; hand it
-  # the roster via the environment to place at research/<slug>/run-meta.json
-  # (explore.md instructs this).
-  export WS_ROSTER_JSON="$RUN_META_JSON"
-else
+# Hand the roster to the post-run metrics pass via a git-ignored SIDECAR FILE,
+# not an env var — the agent would have to `echo $VAR` to read an env var, which
+# the permission parser rejects (simple_expansion) with no human to approve.
+# run-metrics.py reads this sidecar. For a known id we also seed run-meta.json
+# directly; in explore mode the agent-chosen slug means run-metrics.py locates
+# the dir (by plan.md) and writes run-meta.json itself — the agent never touches it.
+printf '%s\n' "$RUN_META_JSON" > research/.ws-roster.json
+if [[ "$EXPLORE" != 1 ]]; then
   mkdir -p "$RESEARCH_DIR"
   printf '%s\n' "$RUN_META_JSON" > "$RESEARCH_DIR/run-meta.json"
 fi
@@ -244,7 +246,8 @@ set -e
 # Reduces the run's transcript(s) to a metrics block merged into
 # research/<id>/run-meta.json (+ run-meta.md). Model-agnostic: reads the model
 # recorded per turn, so router runs on non-Claude models are measured too.
-META_ARGS=(--session-id "$SESSION_ID" --project-dir "$PWD" --started-at "$STARTED_AT")
+META_ARGS=(--session-id "$SESSION_ID" --project-dir "$PWD" --started-at "$STARTED_AT"
+           --roster-file research/.ws-roster.json)
 [[ "$EXPLORE" == 1 ]] || META_ARGS+=(--research-dir "$RESEARCH_DIR")
 META_OUT="$(/usr/bin/python3 bin/run-metrics.py "${META_ARGS[@]}" 2>&1)" \
   || echo "run-metrics: post-run metrics step skipped/failed (non-fatal)." >&2

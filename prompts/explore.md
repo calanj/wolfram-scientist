@@ -55,10 +55,10 @@ domains.
 - Create branch `explore/declined-<UTCstamp>` and write
   `research/_explore/declined-<UTCstamp>.md`: the slate, the scores, and why none
   was worth pursuing.
-- Commit, open a PR titled `[explore] declined: no question cleared the bar
-  (<date>)`, and STOP. Do not manufacture a study. A clean "nothing worth doing
-  this cycle" is a legitimate, honest result — the question-level analogue of a
-  null finding.
+- Commit, then open a PR with `gh pr create --body-file <file>` titled
+  `[explore] declined: no question cleared the bar (<date>)`, and STOP. Do not
+  manufacture a study. A clean "nothing worth doing this cycle" is a legitimate,
+  honest result — the question-level analogue of a null finding.
 
 **Otherwise**, pick the single best candidate and:
 1. Derive a short kebab-case **slug** for it; this is the run `<id>`.
@@ -66,14 +66,12 @@ domains.
    **proposal**: the chosen question + hypothesis, the rubric scores, the
    **rejected alternatives** (one line each, why not), and **why this / why
    now**. Then the usual plan fields (what you'll vary/measure, interesting
-   criteria, compute budget).
-3. Write the model roster: the env var `WS_ROSTER_JSON` holds this run's
-   deterministic model roster — write its exact contents to
-   `research/<slug>/run-meta.json` (do not edit or invent the numbers; metrics
-   are filled in post-run from telemetry, not by you).
-4. Create branch `research/<slug>`, commit the proposal, and **open a DRAFT PR**
-   with the proposal as the body. This is the human's early visibility + veto
-   point (they can close the PR or stop the run if the premise is wrong).
+   criteria, compute budget). (Run metadata is recorded for you automatically
+   after the run — do **not** write `run-meta.json` yourself.)
+3. Create branch `research/<slug>`, commit the proposal, and **open a DRAFT PR**.
+   Write the PR body to a file and run `gh pr create --draft --body-file <file>`
+   — do **not** inline a multi-line body with `$'...'` quoting (it is rejected
+   in unattended runs). The draft PR is the human's early visibility + veto point.
 
 ## Phase 5 — Pursue it (normal loop)
 
@@ -81,7 +79,7 @@ Now read `prompts/research-loop.md` and carry out its procedure **from step 4
 (Gather context) onward** for the chosen `<slug>` — experiment → refute → write
 up → self-improve → verify reproducibility. Push commits onto the same
 `research/<slug>` branch (and PR). When the findings are settled, **flip the PR
-from draft to ready** and post the usual concise summary.
+to ready** with `gh pr ready <number>` and post the usual concise summary.
 
 Remember: the proposal and the draft PR are what keep an autonomous run honest.
 Do not skip the scoring, and do not let a weak question through just to have

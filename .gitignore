@@ -10,3 +10,5 @@ HANDOFF.md
 # per-run metrics — generated locally for your own reference, not committed
 research/*/run-meta.json
 research/*/run-meta.md
+# transient roster sidecar handed from the runner to bin/run-metrics.py
+research/.ws-roster.json

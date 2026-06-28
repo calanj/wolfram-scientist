@@ -144,17 +144,27 @@ def parse_run(path):
 
 
 def find_research_dir(project_dir, started_at):
-    candidates = glob.glob(os.path.join(project_dir, "research", "*", "run-meta.json"))
-    if not candidates:
-        return None
-    if started_at:
-        for c in candidates:
+    # Prefer an existing run-meta.json matching startedAt (non-explore seeds one).
+    metas = glob.glob(os.path.join(project_dir, "research", "*", "run-meta.json"))
+    if metas and started_at:
+        for c in metas:
             try:
                 if json.load(open(c)).get("startedAt") == started_at:
                     return os.path.dirname(c)
             except (OSError, ValueError):
                 pass
-    return os.path.dirname(max(candidates, key=os.path.getmtime))
+    # Explore mode: the agent-chosen slug has no run-meta.json yet, so locate the
+    # run by its plan.md (newest one written during/after the run window).
+    plans = [p for p in glob.glob(os.path.join(project_dir, "research", "*", "plan.md"))
+             if not os.path.basename(os.path.dirname(p)).startswith("_")]
+    if plans:
+        start_epoch = (parse_iso(started_at).timestamp() if parse_iso(started_at) else 0)
+        recent = [p for p in plans if os.path.getmtime(p) >= start_epoch - 5]
+        pool = recent or plans
+        return os.path.dirname(max(pool, key=os.path.getmtime))
+    if metas:
+        return os.path.dirname(max(metas, key=os.path.getmtime))
+    return None
 
 
 def main():
@@ -163,6 +173,10 @@ def main():
     ap.add_argument("--project-dir", default=os.getcwd())
     ap.add_argument("--research-dir")
     ap.add_argument("--started-at")
+    ap.add_argument("--roster-file",
+                    help="JSON sidecar with the deterministic roster (models/mode/"
+                         "gateway/startedAt) when run-meta.json isn't pre-seeded "
+                         "(explore mode). Avoids the agent needing an env var.")
     ap.add_argument("--prices",
                     default=os.path.join(os.path.dirname(__file__), "model-prices.json"))
     args = ap.parse_args()
@@ -187,6 +201,17 @@ def main():
                 meta = json.load(open(mp))
             except ValueError:
                 meta = {}
+    # Seed roster/mode/gateway/id from the runner's sidecar when run-meta.json
+    # wasn't pre-seeded (explore mode) — so the agent never has to write it.
+    roster_meta = {}
+    if args.roster_file and os.path.exists(args.roster_file):
+        try:
+            roster_meta = json.load(open(args.roster_file))
+        except (OSError, ValueError):
+            roster_meta = {}
+    for k in ("models", "mode", "gateway", "startedAt", "id"):
+        if not meta.get(k) and roster_meta.get(k):
+            meta[k] = roster_meta[k]
     roster = meta.get("models", {})
 
     run = parse_run(orch_path)
