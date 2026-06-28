@@ -22,7 +22,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNNER = os.path.join(ROOT, "bin", "run-research.sh")
-VERSION = "6"  # bump on UI changes; shown in the header so a stale page is obvious
+VERSION = "7"  # bump on UI changes; shown in the header so a stale page is obvious
 
 _lock = threading.Lock()
 _current = {"proc": None}
@@ -396,19 +396,30 @@ class Handler(BaseHTTPRequestHandler):
             proc = subprocess.Popen(argv, cwd=ROOT, env=env, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT, text=True, bufsize=1)
             _current["proc"] = proc
+        # A research run can take well over an hour. If the browser disconnects,
+        # we must NOT kill it (it's headless work) — and we must keep DRAINING
+        # proc.stdout, or the OS pipe buffer fills and the run blocks on write.
+        # So: on a dead client, set a flag and keep reading to EOF; the run
+        # finishes on its own and the user can re-open the panel / check the PR.
+        client_gone = False
         try:
             for line in proc.stdout:
                 try:
                     out = _fmt_event(line)
                 except Exception:  # noqa: BLE001 — never let formatting kill the stream
                     out = line.rstrip("\n")
-                if out:
-                    self.wfile.write((out + "\n").encode())
-                    self.wfile.flush()
+                if out and not client_gone:
+                    try:
+                        self.wfile.write((out + "\n").encode())
+                        self.wfile.flush()
+                    except (BrokenPipeError, ConnectionResetError):
+                        client_gone = True  # keep looping to drain; run continues
             proc.wait()
-            self.wfile.write(f"\n[exit {proc.returncode}]\n".encode())
-        except (BrokenPipeError, ConnectionResetError):
-            proc.terminate()  # client navigated away
+            if not client_gone:
+                try:
+                    self.wfile.write(f"\n[exit {proc.returncode}]\n".encode())
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
         finally:
             with _lock:
                 _current["proc"] = None
