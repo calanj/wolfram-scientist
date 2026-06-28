@@ -1,6 +1,6 @@
 # Is single-seed mass dimension a proxy for Wolfram class?
 
-**Research id:** 2 · **Domain:** cellular automata · **Date:** 2026-06-24
+**Research id:** mass-dimension-wolfram-class · **Domain:** cellular automata · **Date:** 2026-06-24
 
 ## Question
 Across all 256 elementary cellular automata (ECAs), does the **single-seed mass

@@ -19,7 +19,7 @@
        are spatially disordered (mean per-row entropy >= 0.5).
      - Class 4: override set {110,124,137,193}.
 
-   Factored out of research/2 (dimension-vs-class sweep).
+   Factored out of research/mass-dimension-wolfram-class (dimension-vs-class sweep).
 
    Usage:
      wolframClass[30]              -> 3

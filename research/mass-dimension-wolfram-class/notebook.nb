@@ -21,7 +21,7 @@ Notebook[{
 Cell["Is single-seed mass dimension a proxy for Wolfram class?", "Title",ExpressionUUID->"4068e765-3b10-4c89-b12d-960534229808"],
 
 Cell["\<\
-Wolfram Scientist \[CenterDot] research id 2 \[CenterDot] elementary cellular \
+Wolfram Scientist \[CenterDot] research id mass-dimension-wolfram-class \[CenterDot] elementary cellular \
 automata\
 \>", "Subtitle",ExpressionUUID->"974744a0-b1a5-4004-81e7-c961f9d314fd"],
 

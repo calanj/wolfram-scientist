@@ -1,15 +1,15 @@
 (* ::Package:: *)
 (* experiment.wl — Is single-seed mass dimension a proxy for Wolfram class?
-   Research id 2.  Source of truth: runs top-to-bottom in a fresh kernel and
-   regenerates every headline number and figure.
+   Research id mass-dimension-wolfram-class.  Source of truth: runs top-to-bottom
+   in a fresh kernel and regenerates every headline number and figure.
 
-   Run:  wolframscript -f research/2/experiment.wl     (from repo root)
+   Run:  wolframscript -f research/mass-dimension-wolfram-class/experiment.wl   (from repo root)
 *)
 
 SetDirectory[ParentDirectory[ParentDirectory[DirectoryName[$InputFileName]]]];
 Get["lib/massDimension.wl"];      (* massDimension[rule, K] *)
 Get["lib/wolframClass.wl"];       (* wolframClass[rule] -> 1|2|3|4 (operational) *)
-out = "research/2/";
+out = "research/mass-dimension-wolfram-class/";
 
 (* ----------------------------------------------------------------- *)
 (* 1. Single-seed mass dimension for all 256 rules (to 2^10 rows).    *)
