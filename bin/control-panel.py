@@ -22,7 +22,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 RUNNER = os.path.join(ROOT, "bin", "run-research.sh")
-VERSION = "6"  # bump on UI changes; shown in the header so a stale page is obvious
+VERSION = "7"  # bump on UI changes; shown in the header so a stale page is obvious
 
 _lock = threading.Lock()
 _current = {"proc": None}
@@ -166,6 +166,8 @@ PAGE = r"""<!doctype html>
       <label><input type="radio" name="mode" value="router" onchange="modeChanged()"> LiteLLM router</label>
     </div>
 
+    <label><input type="checkbox" id="explore" onchange="exploreChanged()"> Open-ended (<code>--explore</code>) <span class="hint">— survey past work, propose &amp; pursue a new question; no target/seed needed</span></label>
+
     <label>Research target <span class="hint">— issue number, or a slug for ad-hoc</span></label>
     <input type="text" id="target" placeholder="12   or   ca-rule90">
 
@@ -177,7 +179,7 @@ PAGE = r"""<!doctype html>
 
     <div class="row">
       <div>
-        <label>Experimenter model <span class="hint">— Sonnet-capped (Claude)</span></label>
+        <label>Experimenter model <span class="hint">— Sonnet-capped (Claude); avoid GPT-5.x (router 400s)</span></label>
         <select id="experimenter"></select>
       </div>
       <button type="button" class="refresh" id="refresh" onclick="loadModels(true)" title="Refresh router model list">↻</button>
@@ -239,11 +241,17 @@ async function loadModels(force){
 
 function modeChanged(){ loadModels(false); }
 
+function exploreChanged(){
+  const on = $('explore').checked;
+  $('target').disabled = on; $('seed').disabled = on;
+  updateCmd();
+}
 function buildArgs(){
   const a=[];
   if (mode()==='router') a.push('--router');
   if ($('orchestrator').value) a.push('--model', $('orchestrator').value);
   if ($('experimenter').value) a.push('--experimenter-model', $('experimenter').value);
+  if ($('explore').checked){ a.push('--explore'); return a; }
   if ($('target').value.trim()) a.push($('target').value.trim());
   if ($('seed').value.trim()) a.push($('seed').value.trim());
   return a;
@@ -256,7 +264,7 @@ function updateCmd(){
   document.addEventListener('input', e => { if (e.target.id===id) updateCmd(); }));
 
 async function startRun(){
-  if (!$('target').value.trim()){ alert('Enter a research target (issue # or slug).'); return; }
+  if (!$('explore').checked && !$('target').value.trim()){ alert('Enter a research target (issue # or slug), or check Open-ended.'); return; }
   $('run').disabled=true; $('stop').disabled=false;
   $('dot').className='dot run'; $('status').textContent='starting…';
   $('log').textContent += '$ '+$('cmd').textContent+'\n(launching — first output can take ~10s)\n\n';
@@ -264,7 +272,8 @@ async function startRun(){
   try {
     const res = await fetch('/api/run', {method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({mode:mode(), orchestrator:$('orchestrator').value,
-        experimenter:$('experimenter').value, target:$('target').value.trim(), seed:$('seed').value.trim()})});
+        experimenter:$('experimenter').value, explore:$('explore').checked,
+        target:$('target').value.trim(), seed:$('seed').value.trim()})});
     if (!res.ok){ throw new Error('server returned HTTP '+res.status); }
     $('status').textContent='running';
     const reader = res.body.getReader(); const dec=new TextDecoder();
@@ -366,10 +375,13 @@ class Handler(BaseHTTPRequestHandler):
             argv += ["--model", body["orchestrator"]]
         if body.get("experimenter"):
             argv += ["--experimenter-model", body["experimenter"]]
-        if body.get("target"):
-            argv.append(body["target"])
-        if body.get("seed"):
-            argv.append(body["seed"])
+        if body.get("explore"):
+            argv.append("--explore")          # open-ended: no target/seed
+        else:
+            if body.get("target"):
+                argv.append(body["target"])
+            if body.get("seed"):
+                argv.append(body["seed"])
 
         self.send_response(200)
         self.send_header("Content-Type", "text/plain; charset=utf-8")
@@ -384,19 +396,30 @@ class Handler(BaseHTTPRequestHandler):
             proc = subprocess.Popen(argv, cwd=ROOT, env=env, stdout=subprocess.PIPE,
                                     stderr=subprocess.STDOUT, text=True, bufsize=1)
             _current["proc"] = proc
+        # A research run can take well over an hour. If the browser disconnects,
+        # we must NOT kill it (it's headless work) — and we must keep DRAINING
+        # proc.stdout, or the OS pipe buffer fills and the run blocks on write.
+        # So: on a dead client, set a flag and keep reading to EOF; the run
+        # finishes on its own and the user can re-open the panel / check the PR.
+        client_gone = False
         try:
             for line in proc.stdout:
                 try:
                     out = _fmt_event(line)
                 except Exception:  # noqa: BLE001 — never let formatting kill the stream
                     out = line.rstrip("\n")
-                if out:
-                    self.wfile.write((out + "\n").encode())
-                    self.wfile.flush()
+                if out and not client_gone:
+                    try:
+                        self.wfile.write((out + "\n").encode())
+                        self.wfile.flush()
+                    except (BrokenPipeError, ConnectionResetError):
+                        client_gone = True  # keep looping to drain; run continues
             proc.wait()
-            self.wfile.write(f"\n[exit {proc.returncode}]\n".encode())
-        except (BrokenPipeError, ConnectionResetError):
-            proc.terminate()  # client navigated away
+            if not client_gone:
+                try:
+                    self.wfile.write(f"\n[exit {proc.returncode}]\n".encode())
+                except (BrokenPipeError, ConnectionResetError):
+                    pass
         finally:
             with _lock:
                 _current["proc"] = None
