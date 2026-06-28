@@ -6,6 +6,28 @@ starting a new run so you don't repeat dead ends. Newest first.
 
 ---
 
+## 2026-06-27 — sidon-ulam-control: the gap is closed, specificity survives
+
+**Result:** clean **negative** — Sidon (B₂) set constructions do **not** reproduce the Ulam hidden-α Fourier dip.  Bose-Chowla (q=10007, 30011) and random Bose subsets yield depths −0.026 and −0.013 respectively, statistically indistinguishable from random density-matched controls (−0.026±0.002, −0.015±0.001).  Ulam depth at same N: **−0.797** — ~30–60× deeper, |Z| ≈ 400–650 vs. controls.  The specificity claim from the prior study survives its sharpest adversarial test.
+
+**What worked:** the corrected Bose formula `2·i·q + Mod[i², q]` (verified Sidon for q=13: all 91 pairwise sums distinct).  The 8000-point coarse scan + `FindMinimum` (WP 25) protocol replicated from the Ulam study found Bose dips reliably, and the Ulam dip reproduced at −0.7970 (N=30k) confirming the method is sound.  Independent refuter with fresh seeds reproduced all control statistics within noise.
+
+**Dead ends / gotchas:** 
+- **Formula confusion:** the first experimenter used `i*q + Mod[i^2,q]`, which is NOT a Sidon set (4 duplicate sums for q=13).  We caught this only because the refuter independently checked Sidon correctness.  **Always verify construction properties independently, not by trusting the formula.**
+- **Coarse-grid-only "polishing" is fatal for Ulam:** the prior (stopped) experimenter tried a 1000-point local grid instead of `FindMinimum` — the dip width is ~6.5×10⁻⁷, so the grid spacing (~2×10⁻⁵) misses it by ~30×.  This gave Ulam 30k depth −0.624 instead of −0.797.  **Always use `FindMinimum` with `WorkingPrecision` for sharp landscapes.**
+- **The first experimenter evaluated every sequence at the FIXED Ulam α instead of finding each sequence's own argmin.**  This answered a different (and less informative) question.  We caught and corrected this mid-run.
+- The writer subagent did NOT actually write `findings.md` to disk — it returned the text in chat.  I (orchestrator) had to write it manually.  **Don't trust the writer to persist files; verify `FileExistsQ`.**
+
+**No new `lib/` asset** — the Bose generator is small enough to live in `experiment.wl`.
+
+**Next (from this run's open questions):**
+- greedy Sidon (Mian-Chowla, OEIS A005282) at N=10k–30k — the most important remaining gap;
+- push Ulam to N=10⁶ to verify exceptional-set stability and close in on McCranie's α interval;
+- LLL/CF probe for α closed form (speculative but cheap);
+- rule 22's exact 3ᵏ count in the ECA fractality study.
+
+---
+
 ## 2026-06-25 — ulam-hidden-periodicity: Steinerberger's α replicates cleanly
 
 **Result:** clean **positive replication** of Steinerberger 2015 within N=10^5.
