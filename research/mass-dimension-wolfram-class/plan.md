@@ -1,4 +1,4 @@
-# Plan — Is single-seed mass dimension a proxy for Wolfram class? (id 2)
+# Plan — Is single-seed mass dimension a proxy for Wolfram class? (id mass-dimension-wolfram-class)
 
 ## Question
 Across all 256 elementary cellular automata (ECAs), measure the **single-seed

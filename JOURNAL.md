@@ -81,7 +81,7 @@ OEIS b-file (a_10000 = 132788) and a naive O(n²) reference.
   scale that begs for an analytic explanation; worth examining whether α has
   a closed form via continued-fraction probes or LLL.
 
-## 2026-06-24 — research 2: mass dimension vs Wolfram class (all 256 ECAs)
+## 2026-06-24 — mass-dimension-wolfram-class: mass dimension vs Wolfram class (all 256 ECAs)
 
 **Result:** clean **negative**. Single-seed mass dimension `D` does **not** proxy
 Wolfram class. Best single `D`-threshold separating class 2 vs 3 = **0.776 =
