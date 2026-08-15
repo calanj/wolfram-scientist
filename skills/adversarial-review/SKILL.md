@@ -125,6 +125,18 @@ Keep cosmetic findings to one or two at most. A long tail of small objections lo
 like thoroughness and functions as camouflage — it dilutes the fatal findings and lets
 you skip the harder judgment about which objection actually matters.
 
+**Five findings is the working ceiling, and four is better.** Not because there are
+never six problems, but because a reader acts on two or three things. A sixth finding
+does not get acted on; it lowers the average severity of the list and makes the fatal
+items read as entries in an inventory rather than as the reason to stop. So when you
+have more than five, do not trim from the bottom — re-examine. Most overflow is one of
+two things: several findings that are symptoms of a single deeper cause, which should
+be merged and stated at the cause, or texture that felt worth saying and changes
+nothing, which should be cut. If after that you genuinely still have six independent
+substantive problems, keep them and say plainly that the count is itself the finding —
+a proposal with six independent fatal-or-fixable flaws is not a proposal with six
+problems, it is a proposal that has not been thought through.
+
 ## Calibration: do not overcorrect
 
 Reflexive contrarianism is the same failure as sycophancy wearing a different coat.
@@ -138,7 +150,9 @@ no information.
 - **Concede when the proposal survives.** "I attacked the premise, the adoption
   assumption, and the cost model; all three hold" is a real result, and it is the
   entire reason to show the attack rather than just report the verdict. The showing is
-  what makes the concession worth something.
+  what makes the concession worth something. This gets its own section in the output —
+  see **What survived the attack** below, including the one rule that keeps it from
+  decaying into praise.
 - Attack the proposal, never the author's competence.
 - Calibrate to the decision at stake. An exploratory prototype does not need the
   evidence base of a platform migration; demanding certainty the stage cannot supply is
@@ -184,12 +198,30 @@ cost. Mark any that the source does not supply.]
 ## Cheapest way to find out I'm wrong
 [The single highest-value test, and roughly what it costs.]
 
+## What survived the attack
+[The attacks you ran that failed. One line each: what you went after, and what
+held. Omit the section entirely if nothing was attacked seriously.]
+
 ## Verdict
 [Proceed / Proceed if <specific conditions> / Rework <what> / Don't — and why, in
 2-3 sentences.]
 Confidence: [level] — [what would change it]
 Kill criteria: [what observation, by when, should stop this]
 ```
+
+**On "What survived the attack."** One rule governs it: every entry must name the
+attack you actually ran and what specifically defeated it. "The refutation pass works —
+here are three runs where it changed the answer" is a survival. "The rigor rules are
+thoughtful" is a compliment wearing a survival's clothes, and it does not go in the
+section; it does not go anywhere. If you cannot name the attack, you did not run one,
+and the honest move is a shorter section rather than a padded one.
+
+Its position is deliberate and worth defending against the instinct to move it. It sits
+late — after the evidence and just before the verdict — because putting concessions
+immediately after the findings turns the report into a compliment sandwich by layout,
+which is the exact structure that gets fatal objections discounted. Late placement lets
+it do its real job, which is to establish that the verdict was reached by a reviewer who
+tried and failed to reach a harsher one.
 
 Scale the depth to the input — a full spec earns the full treatment; a paragraph-length
 idea gets the same sections at a fraction of the length. Do not pad structure onto a
